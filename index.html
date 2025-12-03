@@ -3,58 +3,105 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Code Defender</title>
+  <title>Code Defender - Retro Tower Defense</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/howler.js/2.2.4/howler.min.js"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600&display=swap');
-    :root {
-      --player-actual-size: 80px; 
-      --ring-width: 8px; 
-      --player-visual-scale: 0.8; 
+<style>
+  /* Custom Global Styles für Liquid Glass Effekt und Futura-ähnliche Schrift */
+  @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600&display=swap');
+  :root {
+    --player-actual-size: 80px; 
+    --ring-width: 8px; 
+    --player-visual-scale: 0.8; 
+  }
+  .futura { font-family: 'Chakra Petch', sans-serif; }
+  .liquid-glass {
+    backdrop-filter: blur(10px) saturate(180%);
+    -webkit-backdrop-filter: blur(10px) saturate(180%);
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(209, 213, 219, 0.3);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    background-image: linear-gradient(135deg, rgba(76, 29, 149, 0.7), rgba(49, 46, 129, 0.7)); 
+  }
+  
+  @keyframes burst-shake {
+    0% { transform: translate(0.5px, 0.5px) rotate(0deg); }
+    10% { transform: translate(-0.5px, -1.5px) rotate(-0.25deg); }
+    100% { transform: translate(0.5px, -1.5px) rotate(-0.25deg); }
+  }
+  .camera-shake { animation: burst-shake 0.15s ease-in-out; }
+
+  /* Canvas Styling - Game-Elemente laufen HINTER dem SVG-Ring */
+  #gameCanvas {
+    touch-action: none; 
+    border-radius: 12px;
+    z-index: 10; 
+  }
+  
+  /* Player Glow Animation */
+  @keyframes pulse-glow {
+    0%, 100% { 
+        text-shadow: 0 0 5px #ffffff, 0 0 10px #0000ff; 
+        transform: translate(-50%, -50%) scale(1);
     }
-    .futura { font-family: 'Chakra Petch', sans-serif; }
-    .liquid-glass {
-      backdrop-filter: blur(10px) saturate(180%);
-      -webkit-backdrop-filter: blur(10px) saturate(180%);
-      background-color: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(209, 213, 219, 0.3);
-      border-radius: 12px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-      background-image: linear-gradient(135deg, rgba(76, 29, 149, 0.7), rgba(49, 46, 129, 0.7)); 
+    50% { 
+        text-shadow: 0 0 8px #ffffff, 0 0 15px #0000ff, 0 0 3px #0000ff;
+        transform: translate(-50%, -50%) scale(1.01);
     }
-    @keyframes burst-shake {
-      0% { transform: translate(0.5px, 0.5px) rotate(0deg); }
-      10% { transform: translate(-0.5px, -1.5px) rotate(-0.25deg); }
-      100% { transform: translate(0.5px, -1.5px) rotate(-0.25deg); }
-    }
-    .camera-shake { animation: burst-shake 0.15s ease-in-out; }
-    #gameCanvas { touch-action: none; border-radius: 12px; z-index: 10; }
-    @keyframes pulse-glow {
-      0%, 100% { text-shadow: 0 0 5px #ffffff, 0 0 10px #0000ff; transform: translate(-50%, -50%) scale(1); }
-      50% { text-shadow: 0 0 8px #ffffff, 0 0 15px #0000ff, 0 0 3px #0000ff; transform: translate(-50%, -50%) scale(1.01); }
-    }
-    #player { animation: pulse-glow 3s infinite ease-in-out; font-size: var(--player-actual-size); line-height: 1; user-select: none; z-index: 30; }
-    #playerHealthCircle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 20; transition: all 0.2s ease-out; }
-    .ring-gradient { transition: stroke-dashoffset 0.2s, stroke 0.2s; stroke-linecap: round; }
-    @keyframes pop-up {
+  }
+
+  #player {
+    animation: pulse-glow 3s infinite ease-in-out; 
+    font-size: var(--player-actual-size); 
+    line-height: 1; 
+    user-select: none;
+    z-index: 30; 
+  }
+
+  /* Player Health Circle */
+  #playerHealthCircle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20; 
+    transition: all 0.2s ease-out;
+  }
+  .ring-gradient {
+    transition: stroke-dashoffset 0.2s, stroke 0.2s;
+    /* FIX: Runde Enden für den Ring */
+    stroke-linecap: round; 
+  }
+  
+  @keyframes pop-up {
       0% { transform: translateY(0); opacity: 1; }
       100% { transform: translateY(-40px); opacity: 0; }
-    }
-    .production-animation {
-      position: absolute; font-size: 1.4rem; font-weight: bold; pointer-events: none; white-space: nowrap;
-      animation: pop-up 1s ease-out forwards; text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
-    }
-  </style>
+  }
+  .production-animation {
+      position: absolute;
+      font-size: 1.4rem; 
+      font-weight: bold;
+      pointer-events: none;
+      white-space: nowrap;
+      animation: pop-up 1s ease-out forwards;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+  }
+</style>
+
 </head>
-<body class="futura flex flex-col items-center justify-center min-h-screen p-2 md:p-4 bg-gray-900 text-white select-none relative overflow-hidden">
-<div id="app" class="flex flex-col items-center justify-center min-h-screen">
+<body>
+<!-- Haupt Container -->
+<div id="app" class="futura flex flex-col items-center justify-center min-h-screen p-2 md:p-4 bg-gray-900 text-white select-none relative overflow-hidden">
+  
   <!-- UI Bar oben -->
-  <div id="uiBar" class="w-full max-w-5xl liquid-glass mb-2 p-2 flex justify-between items-center text-sm md:text-base">
+  <div id="uiBar" class="w-full max-w-5xl liquid-glass mb-2 p-2 flex justify-between items-center text-sm md:text-base order-1">
+    
     <div id="videoInfo" class="flex-1 text-left mr-2">
       <div class="font-bold text-green-300">Views: <span id="viewsCount">0</span></div>
       <div id="videoTitle" class="text-xs italic truncate w-40 md:w-72">Erstes Video veröffentlicht</div>
     </div>
+    
     <div class="flex-1 flex flex-col items-center mx-2">
       <div class="text-xs mb-1 font-bold text-yellow-300">Daten: <span id="dataCount">0</span> 💿</div>
       <div class="w-full h-2 bg-gray-700 rounded-full">
@@ -62,50 +109,81 @@
       </div>
       <div class="text-xs mt-1 text-gray-300">Produktion</div>
     </div>
+
     <div class="flex-1 flex justify-end items-center space-x-2">
       <div class="text-right mr-2">
         <div class="text-xs text-red-300">Bugs: <span id="currentBugs">0</span>/<span id="maxBugs">5</span></div>
         <div class="text-xs text-blue-300">Prod: +<span id="prodRate">0</span> 💿/s</div>
       </div>
+      
       <button id="shopBtn" class="liquid-glass p-2 text-xl hover:scale-105 transition-transform">🛍️</button>
       <button id="settingsBtn" class="liquid-glass p-2 text-xl hover:scale-105 transition-transform">⚙️</button>
     </div>
   </div>
 
   <!-- Haupt Game Canvas und Player -->
-  <div id="gameContainer" class="relative w-full max-w-5xl aspect-video bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
+  <div id="gameContainer" class="relative w-full max-w-5xl aspect-video bg-gray-800 rounded-xl shadow-2xl overflow-hidden order-3">
+    <!-- Game Canvas -->
     <canvas id="gameCanvas" class="w-full h-full"></canvas>
-    <div id="player" class="absolute z-30" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">💾</div>
-    <svg id="playerHealthCircle" viewBox="0 0 110 110" style="width: 100px; height: 100px;"> 
-      <circle id="hpRing" class="ring-gradient" cx="55" cy="55" r="50" stroke="#34D399" stroke-width="var(--ring-width)" fill="none" transform="rotate(-90 55 55)"></circle>
+    
+    <!-- Stationärer Player in der Mitte -->
+    <div id="player" class="absolute z-30" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+      💾
+    </div>
+
+    <!-- Kreisrunde Lebensanzeige (SVG) um den Player -->
+    <svg id="playerHealthCircle" 
+         viewBox="0 0 110 110" 
+         style="width: 100px; height: 100px;"> 
+      <circle id="hpRing" 
+              class="ring-gradient" 
+              cx="55" cy="55" 
+              r="50" 
+              stroke="#34D399" 
+              stroke-width="var(--ring-width)" 
+              fill="none" 
+              transform="rotate(-90 55 55)"></circle>
     </svg>
+    
+    <!-- Container für Produktionsanimationen -->
     <div id="productionAnimContainer" class="absolute inset-0 pointer-events-none z-40"></div>
   </div>
 
-  <!-- Modale Fenster -->
+  <!-- Modale Fenster (Shop / Settings / Info / Game Over) -->
   <div id="modalOverlay" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+
+    <!-- Shop Modal -->
     <div id="shopModal" class="liquid-glass w-full max-w-xl p-4 md:p-6 hidden">
       <h2 class="text-2xl md:text-3xl mb-4 text-center font-bold text-yellow-400">Daten Upgrade</h2>
-      <div id="upgradeList" class="space-y-3 overflow-y-auto max-h-96 pr-2"></div>
+      <div id="upgradeList" class="space-y-3 overflow-y-auto max-h-96 pr-2">
+        <!-- Upgrades werden hier von JS eingefügt (sortiert) -->
+      </div>
       <button id="closeShopBtn" class="w-full mt-6 p-3 bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-bold">Schließen</button>
     </div>
+
+    <!-- Settings Modal -->
     <div id="settingsModal" class="liquid-glass w-full max-w-sm p-6 hidden">
       <h2 class="text-2xl md:text-3xl mb-4 text-center font-bold text-blue-400">Einstellungen</h2>
       <label for="volumeSlider" class="block mb-2 text-lg">Lautstärke</label>
-      <input type="range" id="volumeSlider" min="0" max="100" value="50" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+      <input type="range" id="volumeSlider" min="0" max="100" value="50" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg dark:bg-gray-700">
       <button id="closeSettingsBtn" class="w-full mt-6 p-3 bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-bold">Schließen</button>
     </div>
+    
+    <!-- Info Popup -->
     <div id="infoPopup" class="liquid-glass w-full max-w-sm p-6 hidden">
       <h3 id="infoTitle" class="text-xl font-bold mb-2 text-center text-indigo-300"></h3>
       <p id="infoText" class="text-sm text-gray-200 mb-4"></p>
       <button id="closeInfoBtn" class="w-full p-3 bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-bold">OK</button>
     </div>
+
+    <!-- Game Over Modal -->
     <div id="gameOverModal" class="liquid-glass w-full max-w-md p-6 hidden text-center">
       <h2 class="text-4xl font-extrabold text-red-500 mb-4">GAME OVER</h2>
       <p class="text-xl mb-6">Dein Score: <span id="finalScore" class="font-bold text-yellow-300">0</span> Views</p>
-      <input type="text" id="playerNameInput" placeholder="Dein Name" maxlength="20" class="w-full p-3 mb-4 bg-gray-700 text-white rounded-lg">
+      <input type="text" id="playerNameInput" placeholder="Dein Name" maxlength="20" class="w-full p-3 mb-4 bg-gray-700 text-white rounded-lg border border-gray-600 focus:ring-blue-500 focus:border-blue-500">
       <button id="submitScoreBtn" class="w-full p-3 bg-green-600 hover:bg-green-700 rounded-lg transition-colors font-bold">Score an Discord senden & Neustart</button>
     </div>
+
   </div>
 </div>
 
@@ -121,12 +199,13 @@
   const SVG_RING_R = 50; 
   const SVG_RING_CX = 55;
   
+  // Bug Emojis auf 3 reduziert
   const BUG_EMOJIS = ['🐛', '🐞', '🦠']; 
 
   const PARK_NAMES = [ "Europa-Park", "Phantasialand", "Heide Park Resort", "Movie Park Germany", "Hansa-Park", "Legoland Deutschland Resort" ];
   const VIDEO_TITLES = [ "2026 – das wird krank!", "Alle Neuheiten 2026", "Top 10 Bahnen in", "mit Kindern – 100% Empfehlung", "Warum gerade alle schlägt", "Vlog – 12 Stunden Vollgas", "Horror in – ich war fertig", "Wintertraum 2025/26" ];
 
-  const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1445472531413991580/DcsBOrTXpI8vjZFaWAM8jO9uitsn7ZzhrzsAskeWcaMypXM8U7Gjxgloe0gdhac7jV-9";
+  const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1445472531413991580/DcsBOrTXpI8vjZFaWAM8jZFaWAM8jO9uitsn7ZzhrzsAskeWcaMypXM8U7Gjxgloe0gdhac7jV-9";
 
   let lastTime = 0;
   let bugs = [];
@@ -157,18 +236,37 @@
       neuralNetCluster: { level: 0, baseCost: 75000, desc: "Ein 🧠 Neuronales Netz generiert extrem schnell Daten.", desc_short: "Neuronales Netz", effect: (l) => 3000 + l * 1500, maxLevel: 100 },
       globalCDN: { level: 0, baseCost: 300000, desc: "Ein 🌐 Globales CDN generiert massive Datenmengen.", desc_short: "Globales CDN", effect: (l) => 15000 + l * 7500, maxLevel: 100 },
       
-      // Effizienz-Upgrades
+      // Upgrade Geschwindigkeit/Effizienz
       prodSpeed: { level: 0, baseCost: 100, desc: "Produktions-Turbo: Beschleunigt die Rate, mit der neue Videos fertiggestellt werden. Max. 4 Sekunden pro Video bei Level 100.", effect: (l) => 1 + l * 0.24, maxLevel: 100 },
+      
+      // FIX: moreData: skaliert jetzt von x1 (Lv 0) zu x2 (Lv 1) zu x(L+1) bei Lv L
       moreData: { level: 0, baseCost: 50, desc: "Erhöht die Basis-Daten (💿) die Bugs droppen. Bei Level L wird ein Multiplikator von (L+1) angewendet. Max. x101 bei Level 100.", effect: (l) => 1 + l, maxLevel: 100 }, 
+      
+      // NEU: attackDamage: Erhöht den Schaden des Projektils
       attackDamage: { level: 0, baseCost: 100, desc: "Erhöht den Schaden der Projektile um 1 pro Level. Startet bei 1 Schaden.", effect: (l) => 1 + l, maxLevel: 100 },
+      
+      // NEU: Golden Drop Chance Upgrade (Max Level 100, 10% -> 100%)
       goldenDropChance: { level: 0, baseCost: 500, desc: "Erhöht die Chance, dass Bugs 📀 (Gold CDs mit 10x Daten) droppen. Startet bei 10%. Max. 100% bei Level 100.", desc_short: "Gold Drop Chance", effect: (l) => 0.1 + l * 0.009, maxLevel: 100 },
-      viewBoost: { level: 0, baseCost: 200, desc: "Erhöht die Views pro Video exponentiell.", effect: (l) => Math.pow(2, l / 15), maxLevel: 100 },
+      
+      viewBoost: { level: 0, baseCost: 200, desc: "Erhöht die Views pro Video exponentiell.", effect: (l) => 1 + l * 0.2, maxLevel: 100 },
       attackSpeed: { level: 0, baseCost: 100, desc: "Reduziert die Abklingzeit des manuellen Schusses. Minimal 0.05s bei Level 100.", effect: (l) => Math.max(0.05, 0.5 - l * 0.0045), maxLevel: 100 }, 
+      
       multiShot: { level: 0, baseCost: 400, desc: "Dein 💾 schießt mehr als ein Projektil.", effect: (l) => 1 + l, maxLevel: 100 },
       hpRegen: { level: 0, baseCost: 250, desc: "Regeneriert einen kleinen Teil der HP pro Sekunde.", effect: (l) => 0.1 + l * 0.05, maxLevel: 100 },
-      floppyProtector: { level: 0, baseCost: 1000, desc: "Ein 💾-Drohne, die den Player umkreist und alle 5s automatisch schießt. Unendlich levelbar (mehr Drohnen).", desc_short: "Floppy Protector", effect: (l) => l, maxLevel: Infinity },
+      
+      // ANPASSUNG: Floppy Protector mit neuem, hohen exponentiellen Preis-Multiplikator
+      // Basispreis 150, Multiplikator 2.5x, maxLevel hoch gesetzt, um die Struktur zu wahren
+      floppyProtector: { 
+          level: 0, 
+          baseCost: 150, 
+          desc: "Ein 💾-Drohne, die den Player umkreist und alle 5s automatisch schießt. Steigt exponentiell im Preis (2.5x pro Level).", 
+          desc_short: "Floppy Protector", 
+          effect: (l) => l, 
+          maxLevel: 1000 // Sehr hohes Level, um ein faktisches 'unendlich' zu erreichen
+      },
     },
     settings: { volume: 50 },
+    // Cooldowns für manuellen Schuss und Protector
     cooldowns: { shot: 0, protectorShot: 5000 } 
   };
 
@@ -197,37 +295,53 @@
   }
 
   // --- PERSISTENCE ---
+
   function loadGameState() {
     const savedState = localStorage.getItem('codeDefenderState');
+    
+    // Wir laden die Basisstruktur immer neu, um neue Upgrades hinzuzufügen/entfernen
     const baseState = JSON.parse(JSON.stringify(INITIAL_GAME_STATE));
     
     if (savedState) {
       const loaded = JSON.parse(savedState);
+      
+      // Allgemeine Zustände übernehmen
       Object.keys(loaded).forEach(key => {
-        if (key !== 'upgrades' && key !== 'settings' && baseState.hasOwnProperty(key)) {
-          baseState[key] = loaded[key];
-        }
+          if (key !== 'upgrades' && key !== 'settings' && baseState.hasOwnProperty(key)) {
+              baseState[key] = loaded[key];
+          }
       });
+      
+      // Upgrades übernehmen (nur Level, um neue Upgrades zu initialisieren)
       Object.keys(baseState.upgrades).forEach(key => {
         if (loaded.upgrades && loaded.upgrades[key] && loaded.upgrades[key].level !== undefined) {
+          // Stellen Sie sicher, dass nur Upgrades übernommen werden, die noch existieren
           if (baseState.upgrades.hasOwnProperty(key)) {
-            baseState.upgrades[key].level = loaded.upgrades[key].level;
+             baseState.upgrades[key].level = loaded.upgrades[key].level;
           }
         }
       });
-      if (loaded.settings) Object.assign(baseState.settings, loaded.settings);
-      if (loaded.cooldowns) {
-        if (loaded.cooldowns.shot !== undefined) baseState.cooldowns.shot = loaded.cooldowns.shot;
-        if (loaded.cooldowns.protectorShot !== undefined) baseState.cooldowns.protectorShot = loaded.cooldowns.protectorShot;
+      
+      // Einstellungen
+      if (loaded.settings) { Object.assign(baseState.settings, loaded.settings); }
+      // Cooldowns vom geladenen State entfernen/korrigieren
+      if (loaded.cooldowns) { 
+          if (loaded.cooldowns.shot !== undefined) baseState.cooldowns.shot = loaded.cooldowns.shot; 
+          if (loaded.cooldowns.protectorShot !== undefined) baseState.cooldowns.protectorShot = loaded.cooldowns.protectorShot; 
       }
-      gameState = baseState;
+
+      gameState = baseState; // Übernehme den gefilterten State
+      
+      // Initialisierung für Game Loop
       gameState.lastProductionTime = gameState.gameTime || 0; 
       gameState.lastBugSpawnTime = gameState.gameTime || 0;
     } else {
-      gameState = baseState;
+        gameState = baseState;
     }
     
+    // Max Bugs basierend auf videoLevel neu berechnen
     gameState.maxBugs = Math.floor(5 + gameState.videoLevel);
+
     updateUI();
     masterGain.gain.setValueAtTime(gameState.settings.volume / 100, audioContext.currentTime);
     document.getElementById('volumeSlider').value = gameState.settings.volume;
@@ -236,29 +350,32 @@
   function saveGameState() { localStorage.setItem('codeDefenderState', JSON.stringify(gameState)); }
   
   function resetGameState() {
-    localStorage.removeItem('codeDefenderState');
-    gameState = JSON.parse(JSON.stringify(INITIAL_GAME_STATE));
-    isGameOver = false; bugs = []; projectiles = []; particles = []; 
-    gameState.lastProductionTime = 0; gameState.lastBugSpawnTime = 0;
-    gameState.maxBugs = 5; 
-    document.getElementById('gameOverModal').classList.add('hidden');
-    document.getElementById('modalOverlay').classList.add('hidden');
-    isGamePaused = false;
-    resizeCanvas(); 
-    updateUI();
-    if (!window.gameLoopRunning) { window.gameLoopRunning = true; requestAnimationFrame(gameLoop); }
+      localStorage.removeItem('codeDefenderState');
+      gameState = JSON.parse(JSON.stringify(INITIAL_GAME_STATE));
+      isGameOver = false; bugs = []; projectiles = []; particles = []; 
+      gameState.lastProductionTime = 0; gameState.lastBugSpawnTime = 0;
+      // Max Bugs neu setzen
+      gameState.maxBugs = 5; 
+      document.getElementById('gameOverModal').classList.add('hidden');
+      document.getElementById('modalOverlay').classList.add('hidden');
+      isGamePaused = false;
+      resizeCanvas(); 
+      updateUI();
+      if (!window.gameLoopRunning) { window.gameLoopRunning = true; requestAnimationFrame(gameLoop); }
   }
 
   // --- UI UPDATE & RENDERING ---
+
   function calculateProductionRate() {
-    let totalIncome = 0;
-    PRODUCTION_BUILDINGS.forEach(building => {
-      const up = gameState.upgrades[building.key];
-      if (up && up.level > 0 && typeof up.effect === 'function') { 
-        totalIncome += up.effect(up.level); 
-      }
-    });
-    return totalIncome;
+      let totalIncome = 0;
+      PRODUCTION_BUILDINGS.forEach(building => {
+          const up = gameState.upgrades[building.key];
+          // Überprüfen, ob das Upgrade existiert und eine 'effect'-Funktion hat
+          if (up && up.level > 0 && typeof up.effect === 'function') { 
+              totalIncome += up.effect(up.level); 
+          }
+      });
+      return totalIncome;
   }
 
   function getPlayerCollisionRadius(ringReferenceSize) {
@@ -276,6 +393,7 @@
     const inverseRatio = 1 - healthPercent; 
     const currentRadius = minRadius + (maxRadius - minRadius) * inverseRatio;
     
+    // FIX: Berechnung basierend auf den neuen SVG-Werten
     const svgDiameter = currentRadius * 2;
     svg.style.width = `${svgDiameter}px`;
     svg.style.height = `${svgDiameter}px`;
@@ -290,17 +408,30 @@
     ring.setAttribute('stroke', ringColor);
   }
   
+  // Funktion zur Berechnung der Kosten (zentralisiert)
   function calculateCost(key, level) {
-    const up = gameState.upgrades[key];
-    if (!up) return 0;
+      const up = gameState.upgrades[key];
+      if (!up) return 0;
 
-    let costMultiplier = 1.5; 
-    if (up.baseCost >= 5000) costMultiplier = 1.7; 
-    if (up.baseCost >= 75000) costMultiplier = 1.9; 
-    if (up.maxLevel === 100) costMultiplier = 1.35; 
-    if (key === 'floppyProtector') costMultiplier = 1.2; 
-    
-    return Math.floor(up.baseCost * Math.pow(costMultiplier, level));
+      // NEU: Spezielle Regel für Floppy Protector (2.5x exponentiell ohne hartes Limit)
+      if (key === 'floppyProtector') {
+          // Basis: 150 * 2.5 ^ Level
+          return Math.floor(up.baseCost * Math.pow(2.5, level));
+      }
+
+      // Standard-Logik: Sanfter exponentieller Anstieg für alle anderen Upgrades
+      let costMultiplier = 1.35; 
+      
+      // Stärkerer Multiplier für Produktionsgebäude, um das Balancing zu erhöhen
+      if (PRODUCTION_BUILDINGS.some(b => b.key === key)) {
+          costMultiplier = 1.6; 
+      }
+      
+      // Höhere Multiplier für die teuersten Basis-Upgrades
+      if (up.baseCost >= 5000) costMultiplier = 1.7; 
+      if (up.baseCost >= 75000) costMultiplier = 1.9; 
+      
+      return Math.floor(up.baseCost * Math.pow(costMultiplier, level));
   }
 
   function updateUpgradeList() {
@@ -308,16 +439,20 @@
     upgradeList.innerHTML = '';
     
     const upgradeArray = Object.keys(gameState.upgrades).map(key => {
-      const up = gameState.upgrades[key];
-      const cost = calculateCost(key, up.level);
-      const isMaxLevel = up.maxLevel !== Infinity && up.level >= up.maxLevel;
-      return { key, up, cost, isMaxLevel };
+        const up = gameState.upgrades[key];
+        const cost = calculateCost(key, up.level);
+        // Da Floppy Protector kein echtes Max Level mehr hat (maxLevel: 1000), 
+        // wird die Bedingung nun anhand des echten maxLevel geprüft.
+        const isMaxLevel = up.maxLevel !== Infinity && up.level >= up.maxLevel;
+        return { key, up, cost, isMaxLevel };
     });
     
     upgradeArray.sort((a, b) => {
-      if (a.isMaxLevel && !b.isMaxLevel) return 1;
-      if (!a.isMaxLevel && b.isMaxLevel) return -1;
-      return a.cost - b.cost;
+        // Sortiere Max Level Upgrades ans Ende
+        if (a.isMaxLevel && !b.isMaxLevel) return 1;
+        if (!a.isMaxLevel && b.isMaxLevel) return -1;
+        // Sortiere nach Kosten
+        return a.cost - b.cost;
     });
 
     upgradeArray.forEach(({ key, up, cost, isMaxLevel }) => {
@@ -341,8 +476,13 @@
       upgradeList.innerHTML += upgradeHtml;
     });
 
-    document.querySelectorAll('.buy-btn').forEach(button => button.addEventListener('click', handleBuyUpgrade));
-    document.querySelectorAll('.info-btn').forEach(button => button.addEventListener('click', handleShowInfo));
+    // Event-Listener müssen nach dem Einfügen des HTMLs neu zugewiesen werden.
+    document.querySelectorAll('.buy-btn').forEach(button => { 
+        button.addEventListener('click', handleBuyUpgrade); 
+    });
+    document.querySelectorAll('.info-btn').forEach(button => { 
+        button.addEventListener('click', handleShowInfo); 
+    });
   }
 
   function updateUI() {
@@ -352,6 +492,7 @@
     document.getElementById('videoBar').style.width = `${gameState.videoProgress}%`;
     document.getElementById('currentBugs').textContent = bugs.length;
     document.getElementById('maxBugs').textContent = gameState.maxBugs;
+    // FIX: Die Produktionsrate wird korrekt berechnet und angezeigt
     document.getElementById('prodRate').textContent = Math.floor(calculateProductionRate()).toLocaleString(); 
     
     const ringReferenceSize = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--player-actual-size'));
@@ -359,13 +500,16 @@
   }
   
   // --- BUG & GAME LOGIC ---
+
   function calculateBugHP() {
     const baseHP = Math.floor(1 + Math.pow(gameState.videoLevel, 1.3) * 0.5);
     return Math.max(1, baseHP);
   }
 
   function spawnBug() {
+    // Max Bugs wird nur durch videoLevel gesteuert
     gameState.maxBugs = Math.floor(5 + gameState.videoLevel * 1.5); 
+
     if (bugs.length >= gameState.maxBugs) return;
 
     const side = Math.floor(Math.random() * 4); 
@@ -404,17 +548,19 @@
   }
   
   function getProjectileDamage() {
-    const damageUpgrade = gameState.upgrades.attackDamage.effect ? gameState.upgrades.attackDamage.effect(gameState.upgrades.attackDamage.level) : 1;
-    return damageUpgrade;
+      // FIX: attackDamage wird jetzt korrekt abgefragt
+      const damageUpgrade = gameState.upgrades.attackDamage.effect ? gameState.upgrades.attackDamage.effect(gameState.upgrades.attackDamage.level) : 1;
+      return damageUpgrade; // Lv 0 = 1 Schaden, Lv 1 = 2 Schaden, etc.
   }
 
   function fireProjectile(startX, startY, targetX, targetY) {
     const angle = Math.atan2(targetY - startY, targetX - startX);
-    const damage = getProjectileDamage();
+    const damage = getProjectileDamage(); // Hole den aktuellen Schaden
     projectiles.push({ x: startX, y: startY, speed: 15, angle: angle, damage: damage });
     playSound(440, 0.05, 'square', 0.5); 
   }
   
+  // FIX: Erweitert um isGolden Flag für Gold CD Drops
   function createDataDrop(x, y, value, isGolden = false) {
     const isGold = isGolden || value > 200; 
     for(let i = 0; i < (isGold ? 5 : 1); i++) {
@@ -434,7 +580,7 @@
     gameState.playerHP -= damage;
     const container = document.getElementById('gameContainer');
     container.classList.add('camera-shake');
-    setTimeout(() => container.classList.remove('camera-shake'), 150); 
+    setTimeout(() => { container.classList.remove('camera-shake'); }, 150); 
     playSound(100, 0.1, 'sawtooth', 0.8); 
   }
 
@@ -445,6 +591,7 @@
     newViews = Math.floor(newViews * viewBoost);
     gameState.views += newViews;
     
+    // Max Bugs neu berechnen (wird nur durch videoLevel gesteuert)
     gameState.maxBugs = Math.floor(5 + gameState.videoLevel * 1.5);
     
     const park = PARK_NAMES[Math.floor(Math.random() * PARK_NAMES.length)];
@@ -454,10 +601,12 @@
     playSound(1200, 0.2, 'sine', 0.8); 
   }
 
-  // --- RENDERING FUNKTIONEN ---
+  // --- RENDERING FUNKTIONEN (Canvas) ---
+
   function drawBug(bug) {
     CTX.save();
     CTX.translate(bug.x, bug.y);
+    
     CTX.font = `${bug.size * 2}px sans-serif`;
     CTX.textAlign = 'center';
     CTX.textBaseline = 'middle';
@@ -499,6 +648,7 @@
     CTX.restore();
   }
   
+  // NEU: Zeichnet die Floppy Protector Drohnen, die den Spieler umkreisen
   function drawProtectors() {
     const level = gameState.upgrades.floppyProtector.level;
     if (level === 0) return;
@@ -506,9 +656,11 @@
     const orbitRadius = 80;
     const protectorSize = 20; 
     
+    // Berechne die Rotation basierend auf der Spielzeit
     const timeFactor = gameState.gameTime / 15000; 
 
     for (let i = 0; i < level; i++) {
+        // Gleichmässige Verteilung + Rotation über die Zeit
         const baseAngle = (i / level) * Math.PI * 2;
         const totalAngle = baseAngle + timeFactor * Math.PI * 2; 
 
@@ -520,39 +672,58 @@
         CTX.font = `${protectorSize}px sans-serif`;
         CTX.textAlign = 'center';
         CTX.textBaseline = 'middle';
+        // Floppy Disk Emoji
         CTX.fillText('💾', 0, 0); 
         CTX.restore();
     }
   }
 
+  // VERBESSERT: Zeichnet die Produktionsgebäude mit visuellem Puls-Effekt
   function drawBuildings() {
     const activeBuildings = PRODUCTION_BUILDINGS.filter(b => gameState.upgrades[b.key]?.level > 0);
     if (activeBuildings.length === 0) return;
 
     const padding = 30;
-    const size = 60; 
-    const totalWidth = activeBuildings.length * size;
+    const size = 60; // Größe des Platzes pro Gebäude
+    const spacing = 10; // Abstand zwischen den Gebäuden
+    const totalWidth = activeBuildings.length * (size + spacing) - spacing;
     const startX = CANVAS.width / 2 - totalWidth / 2 + size / 2; 
+    const pulseFactor = Math.sin(gameState.gameTime / 150) * 0.05 + 1; // Leichter Puls
 
     activeBuildings.forEach((building, index) => {
         const up = gameState.upgrades[building.key];
         
         if (up && up.level > 0 && typeof up.effect === 'function') { 
-            const x = startX + (index * size);
+            const x = startX + (index * (size + spacing));
             const y = CANVAS.height - padding - 25;
             
             CTX.save();
             CTX.translate(x, y);
-            CTX.font = '36px sans-serif';
+            
+            // 1. Hintergrund-Glow (Pulsing Effect)
+            const glowRadius = 35 * pulseFactor;
+            CTX.shadowBlur = 15;
+            CTX.shadowColor = building.color;
+            CTX.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            CTX.beginPath();
+            CTX.arc(0, 0, glowRadius, 0, Math.PI * 2);
+            CTX.fill();
+            CTX.shadowBlur = 0; // Schatten zurücksetzen
+
+            // 2. Emoji/Gebäude
+            CTX.font = '36px sans-serif'; 
             CTX.textAlign = 'center';
             CTX.textBaseline = 'middle';
+            CTX.fillStyle = '#fff'; 
             CTX.fillText(building.emoji, 0, 0);
             
+            // 3. Produktion pro Sekunde
             CTX.font = '12px Chakra Petch';
             CTX.fillStyle = building.color;
             const prodPerSec = up.effect(up.level).toFixed(0);
             CTX.fillText(`+${prodPerSec} 💿/s`, 0, 28); 
             
+            // 4. Level Anzeige
             CTX.font = '10px Chakra Petch';
             CTX.fillStyle = '#bbb';
             CTX.fillText(`Lv. ${up.level}`, 0, -25);
@@ -563,10 +734,13 @@
   }
 
   // --- GAME LOOP LOGIC ---
+
   function updateObjects(deltaTime, collisionRadius) {
+    // 1. HP Regeneration
     const regen = gameState.upgrades.hpRegen.effect ? gameState.upgrades.hpRegen.effect(gameState.upgrades.hpRegen.level) / 1000 * deltaTime : 0;
     gameState.playerHP = Math.min(gameState.maxPlayerHP, gameState.playerHP + regen);
 
+    // 2. Bug-Bewegung und Kollision
     bugs = bugs.filter(bug => {
       const dx = PLAYER_POS.x - bug.x;
       const dy = PLAYER_POS.y - bug.y;
@@ -583,6 +757,7 @@
       return true;
     });
 
+    // 3. Projektil-Bewegung und Kollision
     projectiles = projectiles.filter(p => {
       p.x += Math.cos(p.angle) * p.speed;
       p.y += Math.sin(p.angle) * p.speed;
@@ -595,14 +770,19 @@
         if (dist < bug.size) {
           bug.currentHP -= p.damage;
           if (bug.currentHP <= 0) {
+            // FIX: moreData Multiplier wird korrekt verwendet (L+1)
             const dataMultiplier = gameState.upgrades.moreData.effect ? gameState.upgrades.moreData.effect(gameState.upgrades.moreData.level) : 1; 
-            const baseValue = (bug.type === 'large' ? 80 : (bug.type === 'small' ? 5 : 20)); 
+            
+            // FIX: Angepasste Basiswerte für spürbar mehr Daten
+            const baseValue = (bug.type === 'large' ? 80 : (bug.type === 'small' ? 5 : 20)); // Normaler Bug droppt 20
+            
             let totalDataValue = baseValue * dataMultiplier;
             let isGolden = false;
             
+            // NEUE LOGIK: Golden Drop Chance
             const goldenChance = gameState.upgrades.goldenDropChance.effect ? gameState.upgrades.goldenDropChance.effect(gameState.upgrades.goldenDropChance.level) : 0;
             if (Math.random() < goldenChance) {
-                totalDataValue *= 10; 
+                totalDataValue *= 10; // 10x Multiplikator für Gold CDs
                 isGolden = true;
             }
             
@@ -618,6 +798,7 @@
       return !hitBug; 
     });
 
+    // 4. Partikel/Drops
     particles = particles.filter(p => {
         p.vy += 0.2; 
         p.x += p.vx;
@@ -633,6 +814,7 @@
     });
   }
 
+  // NEU: Logik für den Floppy Protector
   function updateProtectors(deltaTime) {
     const protectorLevel = gameState.upgrades.floppyProtector.level;
     if (protectorLevel === 0) return;
@@ -641,6 +823,7 @@
 
     if (gameState.cooldowns.protectorShot <= 0) {
         if (bugs.length > 0) {
+            // Finde den nächsten Bug als Ziel
             let targetBug = bugs.reduce((closest, bug) => {
                 const dist = Math.sqrt(Math.pow(bug.x - PLAYER_POS.x, 2) + Math.pow(bug.y - PLAYER_POS.y, 2));
                 if (!closest || dist < closest.dist) {
@@ -650,18 +833,23 @@
             }, null)?.bug;
 
             if (targetBug) {
+                // Feuere eine Kugel pro Protector-Level (Drohne)
                 for(let i = 0; i < protectorLevel; i++) {
+                    // Leichter Streueffekt für die Optik
                     const angleOffset = (Math.random() - 0.5) * 0.2; 
                     const targetX = targetBug.x + Math.cos(targetBug.angle) * angleOffset * 10;
                     const targetY = targetBug.y + Math.sin(targetBug.angle) * angleOffset * 10;
+
+                    // Projektile werden vom Player-Zentrum gefeuert
                     fireProjectile(PLAYER_POS.x, PLAYER_POS.y, targetX, targetY); 
                 }
                 playSound(1600, 0.04, 'sine', 0.3);
             }
         }
-        gameState.cooldowns.protectorShot = 5000; 
+        gameState.cooldowns.protectorShot = 5000; // 5 Sekunden Cooldown
     }
   }
+
 
   function updateBugSpawn(deltaTime) {
       const minSpawnInterval = 500; 
@@ -671,6 +859,7 @@
 
       if (gameState.gameTime - gameState.lastBugSpawnTime >= gameState.bugSpawnInterval) {
           if (bugs.length < gameState.maxBugs) {
+              // Spawn 1 to 3 bugs randomly, but respect maxBugs limit
               const numToSpawn = Math.min(
                   Math.floor(Math.random() * 3) + 1, 
                   gameState.maxBugs - bugs.length
@@ -686,13 +875,16 @@
   function updateProduction(deltaTime) {
     gameState.gameTime += deltaTime;
 
+    // 1. Production Income
     if (gameState.gameTime - gameState.lastProductionTime >= 1000) {
         let totalIncome = 0;
         PRODUCTION_BUILDINGS.forEach(building => {
             const up = gameState.upgrades[building.key];
+            // FIX: Überprüfen, ob die Funktion existiert, um den Fehler zu vermeiden
             if (up && up.level > 0 && typeof up.effect === 'function') {
                 const income = up.effect(up.level);
                 totalIncome += income;
+                // FIX: Animation wird jetzt korrekt getriggert
                 createProductionAnimation(building.key, income); 
             }
         });
@@ -701,7 +893,10 @@
         if (totalIncome > 0) { playSound(950, 0.03, 'sine', 0.4); }
     }
 
+    // 2. Video Progress
+    // Basis Progress Rate von 1.0 (50s Videozeit)
     const baseProgressRate = 1.0 + gameState.videoLevel * 0.1; 
+    // ProdSpeed Multiplier wird korrekt verwendet (geht bis zu 25x = 4s Video)
     const prodSpeedMultiplier = gameState.upgrades.prodSpeed.effect ? gameState.upgrades.prodSpeed.effect(gameState.upgrades.prodSpeed.level) : 1; 
     const finalProgressRate = baseProgressRate * prodSpeedMultiplier;
 
@@ -720,6 +915,7 @@
       playSound(50, 1, 'sawtooth', 1.0); 
     }
     
+    // 3. Produktions-Animationen updaten
     productionAnimations = productionAnimations.filter(anim => {
         anim.y += anim.vy; anim.x += anim.vx; anim.life--;
         const el = document.getElementById(`prod-anim-${anim.id}`);
@@ -728,6 +924,7 @@
         return true;
     });
 
+    // 4. Protector Logic
     updateProtectors(deltaTime);
   }
 
@@ -751,8 +948,8 @@
       projectiles.forEach(drawProjectile);
       particles.forEach(drawParticle);
       
-      drawBuildings(); 
-      drawProtectors(); 
+      drawBuildings(); // NEU: Die Gebäude werden jetzt mit Puls-Effekt korrekt gezeichnet
+      drawProtectors(); // NEU: Die Floppy Protector Drohnen werden gezeichnet
     }
     
     updateUI();
@@ -762,10 +959,13 @@
   }
 
   // --- INPUT / MODALS ---
+
+  // Globale Funktion für den Kauf-Button
   function handleBuyUpgrade(e) {
     const key = e.currentTarget.dataset.key;
     const up = gameState.upgrades[key];
     
+    // Die Prüfung auf Max Level basiert jetzt auf dem definierten (hohen) maxLevel
     if (up.maxLevel !== Infinity && up.level >= up.maxLevel) return; 
 
     const cost = calculateCost(key, up.level); 
@@ -773,8 +973,8 @@
     if (gameState.data >= cost) {
       gameState.data -= cost;
       up.level++;
-      updateUI(); 
-      updateUpgradeList(); 
+      updateUI(); // UI updaten (inklusive Kosten und Daten-Anzeige)
+      updateUpgradeList(); // Shop-Liste sofort aktualisieren, um Button-Zustände zu ändern
       playSound(700, 0.05, 'triangle', 0.6); 
     } else {
       const title = (up.desc_short || key).replace(/([A-Z])/g, ' $1').trim();
@@ -783,6 +983,7 @@
     }
   }
   
+  // Globale Funktion für den Info-Button
   function handleShowInfo(e) {
     const key = e.currentTarget.dataset.key;
     const up = gameState.upgrades[key];
@@ -793,16 +994,21 @@
     let info = up.desc; 
 
     if (up.effect) {
+        // Allgemeine Effekte
         const currentEffect = up.effect(up.level);
+        
         let currentEffectText = currentEffect;
 
         if (key === 'prodSpeed') {
-            const currentVideoTime = Math.floor(100 / (1.0 + gameState.videoLevel * 0.1) / currentEffect);
+            const baseVideoTime = 100 / (1.0 + gameState.videoLevel * 0.1); // Zeit in s bei 1x
+            const currentVideoTime = Math.floor(baseVideoTime / currentEffect);
             currentEffectText = `(x${currentEffect.toFixed(2)} Multiplier. Videozeit: ca. ${currentVideoTime}s)`;
         } else if (key === 'goldenDropChance') {
             currentEffectText = `${(Math.min(1.0, currentEffect) * 100).toFixed(1)}% Chance`;
         } else if (key === 'moreData') {
-             currentEffectText = `x${currentEffect.toFixed(1)} Daten-Multiplikator. Normaler Bug droppt ${Math.floor(20 * currentEffect).toLocaleString()} 💿`;
+             // FIX: Korrekte Anzeige des Drop-Multiplikators und der Basiswerte
+             const dataDropBase = 20; // Normaler Bug Drop
+             currentEffectText = `x${currentEffect.toFixed(1)} Daten-Multiplikator. Normaler Bug droppt ${Math.floor(dataDropBase * currentEffect).toLocaleString()} 💿.`;
         } else if (key === 'attackDamage') {
              currentEffectText = `${currentEffect.toFixed(0)} Schaden pro Schuss`;
         } else if (PRODUCTION_BUILDINGS.some(b => b.key === key)) {
@@ -810,7 +1016,7 @@
         } else if (key === 'hpRegen') {
              currentEffectText = `${currentEffect.toFixed(2)} HP/s Regeneration`;
         } else if (key === 'attackSpeed') {
-             currentEffectText = `${currentEffect.toFixed(3)} Sekunden Cooldown`;
+             currentEffectText = `${currentEffect.toFixed(3)} Sekunden Cooldown für manuellen Schuss`;
         } else if (key === 'floppyProtector') {
              currentEffectText = `${currentEffect.toFixed(0)} Drohnen aktiv. Feuern alle 5s.`;
         }
@@ -819,15 +1025,18 @@
 
         if (up.maxLevel === Infinity || up.level < up.maxLevel) {
             const nextEffect = up.effect(up.level + 1);
+            const nextCost = calculateCost(key, up.level + 1);
             let nextEffectText = nextEffect;
 
             if (key === 'prodSpeed') {
-                const nextVideoTime = Math.floor(100 / (1.0 + gameState.videoLevel * 0.1) / nextEffect);
+                const baseVideoTime = 100 / (1.0 + gameState.videoLevel * 0.1);
+                const nextVideoTime = Math.floor(baseVideoTime / nextEffect);
                 nextEffectText = `(x${nextEffect.toFixed(2)} Multiplier. Videozeit: ca. ${nextVideoTime}s)`;
             } else if (key === 'goldenDropChance') {
                 nextEffectText = `${(Math.min(1.0, nextEffect) * 100).toFixed(1)}% Chance`;
             } else if (key === 'moreData') {
-                 nextEffectText = `x${nextEffect.toFixed(1)} Multiplikator. Normaler Bug droppt ${Math.floor(20 * nextEffect).toLocaleString()} 💿`;
+                 const dataDropBase = 20;
+                 nextEffectText = `x${nextEffect.toFixed(1)} Daten-Multiplikator. Normaler Bug droppt ${Math.floor(dataDropBase * nextEffect).toLocaleString()} 💿.`;
             } else if (key === 'attackDamage') {
                  nextEffectText = `${nextEffect.toFixed(0)} Schaden pro Schuss`;
             } else if (PRODUCTION_BUILDINGS.some(b => b.key === key)) {
@@ -835,13 +1044,18 @@
             } else if (key === 'hpRegen') {
                 nextEffectText = `${nextEffect.toFixed(2)} HP/s Regeneration`;
             } else if (key === 'attackSpeed') {
-                 nextEffectText = `${nextEffect.toFixed(3)} Sekunden Cooldown`;
+                 nextEffectText = `${nextEffect.toFixed(3)} Sekunden Cooldown für manuellen Schuss`;
             } else if (key === 'floppyProtector') {
-                 nextEffectText = `${nextEffect.toFixed(0)} Drohnen aktiv.`;
+                 nextEffectText = `${nextEffect.toFixed(0) + 1} Drohnen aktiv.`; // Zeigt an, dass eine weitere Drohne hinzukommt
             }
             
             info += ` Nächstes Level (${up.level + 1}): Effekt ${nextEffectText}.`;
-            info += ` Kosten: ${cost.toLocaleString()} 💿.`;
+            // Wenn das nächste Level unter dem Max-Level liegt (oder das Max-Level sehr hoch ist)
+            if (up.level < up.maxLevel) { 
+                info += ` Kosten: ${nextCost.toLocaleString()} 💿.`;
+            } else {
+                 info += ` Kosten: ${cost.toLocaleString()} 💿.`; // Zeigt die aktuellen Kosten
+            }
         } else if (up.maxLevel && up.level >= up.maxLevel) {
             info += ` **MAXIMALES LEVEL ERREICHT.**`;
         }
@@ -860,6 +1074,7 @@
   function shootPlayer(targetX, targetY) {
       const multishotCount = gameState.upgrades.multiShot.effect ? gameState.upgrades.multiShot.effect(gameState.upgrades.multiShot.level) : 1;
       const spreadAngle = multishotCount > 1 ? Math.PI / 18 : 0; 
+      // FIX: attackSpeed aus dem Upgrade holen
       const attackSpeed = gameState.upgrades.attackSpeed.effect ? gameState.upgrades.attackSpeed.effect(gameState.upgrades.attackSpeed.level) : 0.5;
 
       if (gameState.cooldowns.shot > 0) return; 
@@ -869,6 +1084,7 @@
         const offsetAngle = (i - (multishotCount - 1) / 2) * spreadAngle;
         const finalAngle = baseAngle + offsetAngle;
         
+        // FIX: fireProjectile ohne Schaden-Parameter aufrufen, da es im inneren Damage holt
         fireProjectile(PLAYER_POS.x, PLAYER_POS.y, PLAYER_POS.x + Math.cos(finalAngle) * 100, PLAYER_POS.y + Math.sin(finalAngle) * 100);
       }
       gameState.cooldowns.shot = attackSpeed; 
@@ -892,6 +1108,7 @@
     document.getElementById('gameOverModal').classList.add('hidden');
     document.getElementById(modalId).classList.remove('hidden');
     
+    // WICHTIG: Shop-Liste nur dann aktualisieren, wenn der Shop geöffnet wird
     if (modalId === 'shopModal') {
         updateUpgradeList(); 
     }
@@ -900,6 +1117,9 @@
 
   function hideAllModals() {
     document.getElementById('modalOverlay').classList.add('hidden');
+    document.getElementById('shopModal').classList.add('hidden');
+    document.getElementById('settingsModal').classList.add('hidden');
+    document.getElementById('infoPopup').classList.add('hidden');
     isGamePaused = false;
   }
   
@@ -963,14 +1183,17 @@
     const activeBuildings = PRODUCTION_BUILDINGS.filter(b => gameState.upgrades[b.key]?.level > 0);
     const indexInActiveList = activeBuildings.findIndex(b => b.key === buildingKey);
 
+    // Nur Animation, wenn das Gebäude existiert
     if (indexInActiveList === -1) return;
     
     const padding = 30;
-    const size = 60; 
-    const totalWidth = activeBuildings.length * size;
+    const size = 60; // Muss mit drawBuildings übereinstimmen
+    const spacing = 10;
+    const totalWidth = activeBuildings.length * (size + spacing) - spacing;
     const startX = CANVAS.width / 2 - totalWidth / 2 + size / 2;
     
-    const x = startX + (indexInActiveList * size); 
+    // X und Y Position des Gebäudes
+    const x = startX + (indexInActiveList * (size + spacing)); 
     const y = CANVAS.height - padding - 25; 
     
     const animId = Date.now() + Math.random();
@@ -978,6 +1201,7 @@
     const animElement = document.createElement('div');
     animElement.id = `prod-anim-${animId}`;
     animElement.className = 'production-animation';
+    // FIX: Die angezeigte Menge ist jetzt die *tatsächliche* Produktion
     animElement.textContent = `+${Math.floor(amount)}`;
     animElement.style.top = `${y}px`;
     animElement.style.left = `${x}px`;
@@ -986,11 +1210,14 @@
 
     productionAnimations.push({
         id: animId, x: x, y: y, value: `+${Math.floor(amount)}`, life: 60,
+        // FIX: Leichte zufällige Bewegung nach oben
         vx: (Math.random() - 0.5) * 2, vy: -2 - Math.random() * 2 
     });
   }
 
+
   // --- INITIALISIERUNG ---
+
   function resizeCanvas() {
     const container = document.getElementById('gameContainer');
     CANVAS.width = container.clientWidth;
@@ -1012,6 +1239,7 @@
 
   function setupEvents() {
     window.addEventListener('resize', resizeCanvas);
+    // Button Event Listener für Shop/Settings
     document.getElementById('shopBtn').addEventListener('click', () => showModal('shopModal'));
     document.getElementById('settingsBtn').addEventListener('click', () => showModal('settingsModal'));
     document.getElementById('closeShopBtn').addEventListener('click', hideAllModals);
