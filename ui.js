@@ -78,7 +78,7 @@ class UI {
         document.getElementById('go-money').innerText = Math.floor(s.totalMoneyEarned);
     }
     
-    // Die Discord Webhook Funktion wurde beibehalten (bitte Webhook-URL anpassen)
+    // Die Discord Webhook Funktion wurde beibehalten (BITTE URL ANPASSEN!)
     async sendToDiscord() {
         const btn = document.getElementById('btn-discord');
         btn.disabled = true;
@@ -90,7 +90,8 @@ class UI {
             .map(u => `${u.emoji} ${u.name} (Lv ${u.level})`)
             .join('\\n') || 'Keine Upgrades';
 
-        const webhookURL = "IHRE_DISCORD_WEBHOOK_URL_HIER";
+        // BITTE HIER IHRE WEBHOOK URL EINFÜGEN!
+        const webhookURL = "IHRE_DISCORD_WEBHOOK_URL_HIER"; 
 
         const payload = {
             username: "Floppy Defender Highscore",
