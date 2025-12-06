@@ -26,7 +26,7 @@ class Game {
             stats: { 
                 damageMult: 1, fireRate: 600, projSpeed: 8, 
                 xpMult: 1, moneyMult: 1, pickupRange: 10000, regen: 0, splash: 0,
-                pierceCount: 0 // Neu: Für das Durchschuss-Upgrade
+                pierceCount: 0 
             },
             lastShot: 0
         };
@@ -41,9 +41,10 @@ class Game {
         document.getElementById('game-over-overlay').classList.add('hidden');
         
         this.bindEvents();
-        document.getElementById('btn-start').addEventListener('click', () => this.startGame());
+        // Event Listener für Start-Button ist bereits in UI.js für Klick-SFX eingebunden, Logik hier:
+        document.getElementById('btn-start').addEventListener('click', () => this.startGame()); 
 
-        this.applyInitialUpgrades(); // Wird ausgeführt, um persistente Upgrades zu laden
+        this.applyInitialUpgrades(); 
 
         this.loop(0);
     }
@@ -54,12 +55,10 @@ class Game {
     }
 
     applyInitialUpgrades() {
-        // Hinzugefügter Try-Catch-Block, um sicherzustellen, dass kein Fehler das Skript stoppt.
         try {
             const loadedData = this.saveData.loadPersistentData();
             
             loadedData.upgrades.forEach(up => {
-                // Überprüft, ob das Upgrade noch in der Datenbank existiert, bevor es angewendet wird
                 if (UPGRADES_DB.find(u => u.id === up.id)) {
                     for(let i = 0; i < up.level; i++) {
                         this.upgrades.apply(up.id, true);
@@ -83,7 +82,6 @@ class Game {
         this.player.y = canvas.height / 2;
         
         this.paused = false;
-        this.audio.playBGM(); 
         
         this.spawnInterval = setInterval(() => { if(!this.paused && !this.gameOver) this.enemySystem.spawn(); }, 1000);
         this.regenInterval = setInterval(() => { 
@@ -104,7 +102,6 @@ class Game {
         if(this.player.hp <= 0) {
             this.player.hp = 0;
             this.gameOver = true;
-            this.audio.stopBGM(); 
             clearInterval(this.spawnInterval); 
             clearInterval(this.regenInterval);
             this.ui.showGameOver(); 
@@ -131,7 +128,6 @@ class Game {
             damage: dmg,
             size: (this.player.stats.projSize || 0),
             
-            // Neu: Piercing Logik
             hits: 0,
             maxHits: 1 + (this.player.stats.pierceCount || 0) 
         });
@@ -140,7 +136,7 @@ class Game {
 
     createExplosion(x, y, radius, damage) {
         this.explosions.push({ x, y, r: 0, maxR: radius, alpha: 1 });
-        this.audio.playHit();
+        this.audio.playExplosion(); // NEUER SFX
         
         this.enemies.forEach(en => {
             if(Math.hypot(en.x - x, en.y - y) < radius) {
@@ -176,7 +172,6 @@ class Game {
             let p = this.projectiles[i];
             p.x += p.vx; p.y += p.vy; 
             
-            // Cleanup far-off projectiles (für unendliche Reichweite)
             if(p.x < -100 || p.x > canvas.width + 100 || p.y < -100 || p.y > canvas.height + 100) {
                 this.projectiles.splice(i, 1);
                 continue;
@@ -323,7 +318,6 @@ class Game {
             this.stats.xpToNext *= 1.2;
             this.stats.level++;
             this.paused = true;
-            this.audio.stopBGM();
             this.audio.playLevelUp();
             this.showUpgradeMenu();
         }
@@ -354,7 +348,6 @@ class Game {
                 this.upgrades.apply(opt.id);
                 document.getElementById('menu-overlay').classList.add('hidden');
                 this.paused = false;
-                this.audio.playBGM();
             };
             modalBody.appendChild(div);
         });
@@ -365,11 +358,9 @@ class Game {
         const overlay = document.getElementById('menu-overlay');
         if(state) {
             overlay.classList.remove('hidden');
-            this.audio.stopBGM();
         }
         else {
             overlay.classList.add('hidden');
-            this.audio.playBGM();
         }
     }
 }
