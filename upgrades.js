@@ -11,7 +11,7 @@ const UPGRADES_DB = [
     { id: 'luck_run', name: 'Glück', emoji: '🍀', rarity: 'common', desc: '+15% XP in dieser Runde', type: 'stat', stat: 'xpMult', val: 0.15, isPersistent: false },
     { id: 'proj_life', name: 'Reichweite', emoji: '📏', rarity: 'common', desc: 'Projektile fliegen 10% weiter', type: 'stat', stat: 'projLifeMult', val: 0.1, isPersistent: false },
     { id: 'proj_speed', name: 'Projektil Speed', emoji: '🏹', rarity: 'common', desc: 'Schüsse fliegen 10% schneller', type: 'stat', stat: 'projSpeedMult', val: 0.1, isPersistent: false },
-    { id: 'pickup_range', name: 'Magnet', emoji: '🧲', rarity: 'common', desc: '+50 Pickup-Reichweite', type: 'stat', stat: 'pickupRange', val: 50, isPersistent: false },
+    // { id: 'pickup_range', name: 'Magnet', emoji: '🧲', rarity: 'common', desc: '+50 Pickup-Reichweite', type: 'stat', stat: 'pickupRange', val: 50, isPersistent: false }, // <--- ENTFERNT
     { id: 'knock', name: 'Knockback', emoji: '🥊', rarity: 'common', desc: 'Wirft Gegner leicht zurück', type: 'stat', stat: 'knockback', val: 1.5, isPersistent: false },
     
     // RARE (5 Upgrades)
@@ -125,8 +125,9 @@ class UpgradeManager {
                  // Projektil-Geschwindigkeit multiplizieren
                  this.game.player.stats.projSpeed = this.game.player.stats.projSpeed * (1 + dbEntry.val);
             }
+            // Der Fall 'pickupRange' wurde entfernt, da das Stat nun nicht mehr existiert.
             else {
-                // Additive Stats (damageMult, xpMult, moneyMult, regen, pickupRange, knockback, critChance, critDmg, pierce, splashChance, lifesteal)
+                // Additive Stats (damageMult, xpMult, moneyMult, regen, knockback, critChance, critDmg, pierce, splashChance, lifesteal)
                  this.game.player.stats[dbEntry.stat] = (this.game.player.stats[dbEntry.stat] || 0) + dbEntry.val;
             }
         }
