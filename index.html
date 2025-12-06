@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floppy Survivor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="ui-layer">
+        
+        <div class="glass-panel" id="settings-panel">
+            <button id="btn-mute">🔊 Sound an</button>
+        </div>
+
+        <div class="glass-panel" id="level-panel">
+            <div id="level-display">LEVEL 1</div>
+            <div id="xp-bar-container">
+                <div id="xp-bar-fill"></div>
+            </div>
+        </div>
+
+        <div class="glass-panel" id="shop-panel">
+            <div id="money-display">📀 0</div>
+            <button id="btn-shop" class="shop-btn">Lootbox kaufen (📀 <span id="lootbox-cost">100</span>)</button>
+        </div>
+
+    </div>
+
+    <div id="menu-overlay" class="hidden">
+        <div class="glass-modal" id="modal-content">
+            <h2 id="modal-title">PAUSE</h2>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script src="audio.js"></script>
+    <script src="upgrades.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
