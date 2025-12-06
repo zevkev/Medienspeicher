@@ -23,7 +23,8 @@
 
     <div id="ui-layer" class="hidden"> 
         <div class="glass-panel" id="settings-panel">
-            <button id="btn-mute">🔊 Sound</button>
+            <label for="volume-slider" style="display: block; font-size: 12px; margin-bottom: 5px;">🔊 LAUTSTÄRKE</label>
+            <input type="range" id="volume-slider" min="0" max="100" value="50">
         </div>
 
         <div class="glass-panel" id="level-panel">
@@ -68,6 +69,7 @@
     <script src="ui.js"></script>
     <script src="enemies.js"></script>
     <script src="upgrades.js"></script>
+    <script src="save_data.js"></script>
     <script src="game.js"></script>
 </body>
 </html>
