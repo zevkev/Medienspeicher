@@ -13,7 +13,7 @@ class UI {
             e.target.innerText = m ? "🔇 Sound aus" : "🔊 Sound an";
         });
 
-        // Discord Button Event
+        // Discord Button Event (muss auf dem Game Over Screen liegen)
         document.getElementById('btn-discord').addEventListener('click', () => this.sendToDiscord());
     }
 
@@ -33,8 +33,12 @@ class UI {
     showGameOver() {
         const s = this.game.stats;
         document.getElementById('game-over-overlay').classList.remove('hidden');
+        document.getElementById('ui-layer').classList.add('hidden'); // Haupt-UI ausblenden
         document.getElementById('go-level').innerText = s.level;
         document.getElementById('go-money').innerText = Math.floor(s.money);
+        
+        // Deaktiviere den Schuss-Event-Handler im game.js, um das Schießen zu verhindern
+        this.game.canvas.removeEventListener('mousedown', this.game.shootHandler); 
     }
 
     async sendToDiscord() {
@@ -42,6 +46,8 @@ class UI {
         btn.innerText = "Sende...";
         
         const s = this.game.stats;
+        
+        // Liste der Upgrades im schönen Format
         const upgradeList = this.game.upgrades.activeUpgrades
             .map(u => `${u.emoji} ${u.name} (Lvl ${u.level})`)
             .join('\n') || "Keine Upgrades";
@@ -49,18 +55,19 @@ class UI {
         const webhookURL = "https://discord.com/api/webhooks/1445472531413991580/DcsBOrTXpI8vjZFaWAM8jO9uitsn7ZzhrzsAskeWcaMypXM8U7Gjxgloe0gdhac7jV-9";
 
         const payload = {
-            username: "Floppy Survivor Highscore",
+            username: "Floppy Defender Highscore",
             avatar_url: "https://em-content.zobj.net/source/microsoft-teams/337/floppy-disk_1f4be.png",
             embeds: [
                 {
-                    title: "💾 Neuer Highscore!",
+                    title: "💾 Neuer Highscore: Daten korrumpiert!",
                     color: 10181046, // Lila
                     fields: [
-                        { name: "Level", value: s.level.toString(), inline: true },
-                        { name: "Money", value: `📀 ${Math.floor(s.money)}`, inline: true },
-                        { name: "Upgrades", value: upgradeList }
+                        { name: "Level erreicht", value: s.level.toString(), inline: true },
+                        { name: "Gesammeltes Geld", value: `📀 ${Math.floor(s.money)}`, inline: true },
+                        { name: "---", value: "\u200b", inline: false }, // Separator
+                        { name: "Erworbene Upgrades", value: upgradeList }
                     ],
-                    footer: { text: "Gespielt von einem Pro Gamer 🕶️" },
+                    footer: { text: `Datum: ${new Date().toLocaleDateString('de-DE')} | Floppy Defender` },
                     timestamp: new Date().toISOString()
                 }
             ]
@@ -75,7 +82,7 @@ class UI {
             btn.innerText = "✅ Gesendet!";
             btn.disabled = true;
         } catch(e) {
-            btn.innerText = "❌ Fehler";
+            btn.innerText = "❌ Fehler beim Senden";
             console.error(e);
         }
     }
