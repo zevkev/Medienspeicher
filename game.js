@@ -4,30 +4,28 @@ const ctx = canvas.getContext('2d');
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener('resize', resize); resize();
 
-// Die Klassen UI, EnemySystem, UpgradeManager sind in den externen Dateien
-
 class Game {
     constructor() {
         this.canvas = canvas;
         this.ctx = ctx;
-        // Wichtig: Die SoundEngine (audio.js) und UI (ui.js) müssen zuerst geladen werden
         this.audio = new SoundEngine(); 
         this.ui = new UI(this);
         this.enemySystem = new EnemySystem(this);
         this.upgrades = new UpgradeManager(this);
+        this.saveData = new SaveData(this); 
 
-        this.paused = true; // Spiel startet pausiert
+        this.paused = true; 
         this.gameOver = false;
         
-        this.stats = { level: 1, xp: 0, xpToNext: 100, money: 0, lootboxCost: 100 };
+        this.stats = { level: 1, xp: 0, xpToNext: 100, money: 0, lootboxCost: 100, totalMoneyEarned: 0 };
         
         this.player = {
-            x: -100, // Außerhalb des Screens, wird bei startGame() zentriert
+            x: -100, 
             y: -100,
             hp: 100, maxHp: 100,
             stats: { 
                 damageMult: 1, fireRate: 600, projSpeed: 8, 
-                xpMult: 1, moneyMult: 1, pickupRange: 100, regen: 0, splash: 0 // Wichtig: Standardwerte für Upgrades
+                xpMult: 1, moneyMult: 1, pickupRange: 10000, regen: 0, splash: 0
             },
             lastShot: 0
         };
@@ -38,40 +36,51 @@ class Game {
         this.particles = [];
         this.explosions = [];
 
-        // UI-Ebenen vorbereiten (Ausblenden der UI beim Start)
         document.getElementById('ui-layer').classList.add('hidden');
         document.getElementById('game-over-overlay').classList.add('hidden');
         
-        // Input und Start-Events
         this.bindEvents();
         document.getElementById('btn-start').addEventListener('click', () => this.startGame());
 
-        // Die Game Loop startet sofort, rendert aber nur, wenn `paused=false`
+        this.applyInitialUpgrades(); 
+
         this.loop(0);
     }
     
     bindEvents() {
-        // Muss hier gebunden werden, um die Instanz zu referenzieren
         this.shootHandler = (e) => this.inputShoot(e);
         canvas.addEventListener('mousedown', this.shootHandler);
     }
 
+    applyInitialUpgrades() {
+        const loadedData = this.saveData.loadPersistentData();
+        
+        loadedData.upgrades.forEach(up => {
+            for(let i = 0; i < up.level; i++) {
+                this.upgrades.apply(up.id, true);
+            }
+        });
+        
+        this.stats.totalMoneyEarned = loadedData.totalMoneyEarned; 
+    }
+
     startGame() {
+        this.saveData.resetAndApplyUpgrades(); 
+        
         document.getElementById('start-overlay').classList.add('hidden');
         document.getElementById('ui-layer').classList.remove('hidden');
         
-        // Player in die Mitte setzen
         this.player.x = canvas.width / 2;
         this.player.y = canvas.height / 2;
         
         this.paused = false;
-        this.audio.playBGM(); // Hintergrundmusik starten
+        this.audio.playBGM(); 
         
-        // Starte passive Loops (Spawn & Regen)
         this.spawnInterval = setInterval(() => { if(!this.paused && !this.gameOver) this.enemySystem.spawn(); }, 1000);
         this.regenInterval = setInterval(() => { 
             if(!this.paused && !this.gameOver && this.player.hp < this.player.maxHp) {
                 this.player.hp += (this.player.stats.regen || 0);
+                if(this.player.hp > this.player.maxHp) this.player.hp = this.player.maxHp;
             }
         }, 1000);
     }
@@ -80,17 +89,16 @@ class Game {
         this.player.hp -= amount;
         this.audio.playDamage();
         
-        // Camera Shake
         document.body.classList.add('shake');
         setTimeout(() => document.body.classList.remove('shake'), 500);
 
         if(this.player.hp <= 0) {
             this.player.hp = 0;
             this.gameOver = true;
-            this.audio.stopBGM(); // Musik stoppen
-            clearInterval(this.spawnInterval); // Intervalle stoppen
+            this.audio.stopBGM(); 
+            clearInterval(this.spawnInterval); 
             clearInterval(this.regenInterval);
-            this.ui.showGameOver(); // Zeigt das Game Over UI
+            this.ui.showGameOver(); 
         }
     }
 
@@ -121,7 +129,7 @@ class Game {
     createExplosion(x, y, radius, damage) {
         this.explosions.push({ x, y, r: 0, maxR: radius, alpha: 1 });
         this.audio.playHit();
-        // Area Damage
+        
         this.enemies.forEach(en => {
             if(Math.hypot(en.x - x, en.y - y) < radius) {
                 en.currentHp -= damage;
@@ -138,12 +146,8 @@ class Game {
         requestAnimationFrame((t) => this.loop(t));
         
         if(this.paused || this.gameOver) {
-            // Nur das Canvas löschen, wenn das Spiel läuft
             if (this.gameOver || document.getElementById('start-overlay').classList.contains('hidden')) {
                 this.ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                // Spieler nur zeichnen, wenn das Spiel nicht gestartet ist (start-overlay sichtbar) 
-                // oder wenn es Game Over ist (letzter Frame)
                 if (!document.getElementById('start-overlay').classList.contains('hidden') || this.gameOver) {
                     this.drawPlayer();
                 }
@@ -153,20 +157,16 @@ class Game {
 
         this.ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Updates
         this.upgrades.update(timestamp);
         this.enemySystem.update();
         
-        // Projectiles
         for(let i=this.projectiles.length-1; i>=0; i--) {
             let p = this.projectiles[i];
             p.x += p.vx; p.y += p.vy; p.life--;
             
-            // Draw Projectile
             this.ctx.font = `${20 + p.size}px Arial`;
             this.ctx.fillText('💿', p.x, p.y);
 
-            // Hit Logic
             let hit = false;
             if(p.life <= 0) hit = true;
             
@@ -183,7 +183,6 @@ class Game {
             if(hit) this.projectiles.splice(i, 1);
         }
 
-        // Explosions Draw
         for(let i=this.explosions.length-1; i>=0; i--) {
             let ex = this.explosions[i];
             ex.r += 5; ex.alpha -= 0.05;
@@ -194,28 +193,30 @@ class Game {
             if(ex.alpha <= 0) this.explosions.splice(i, 1);
         }
 
-        // Enemies Death Check
         for(let i=this.enemies.length-1; i>=0; i--) {
             if(this.enemies[i].currentHp <= 0) {
                 const en = this.enemies[i];
                 this.loot.push({x:en.x, y:en.y, type:'xp'});
                 if(Math.random() > 0.7) this.loot.push({x:en.x+10, y:en.y, type:'money'});
                 this.enemies.splice(i, 1);
+                this.stats.totalMoneyEarned += 10;
             }
         }
 
-        // Loot & Magnet
+        // Loot & GLOBAL MAGNET
         for(let i=this.loot.length-1; i>=0; i--) {
             let l = this.loot[i];
-            const d = Math.hypot(this.player.x - l.x, this.player.y - l.y);
-            const range = this.player.stats.pickupRange || 100;
+            const dx = this.player.x - l.x;
+            const dy = this.player.y - l.y;
+            const dist = Math.hypot(dx, dy);
             
-            if(d < range) {
-                l.x += (this.player.x - l.x) * 0.1;
-                l.y += (this.player.y - l.y) * 0.1;
-            }
+            // IMMER zum Spieler ziehen (Geschw. nimmt mit Distanz ab, max. 8px/frame)
+            const pullSpeed = Math.min(8, dist / 10); 
             
-            if(d < 20) {
+            l.x += (dx / dist) * pullSpeed;
+            l.y += (dy / dist) * pullSpeed;
+            
+            if(dist < 20) {
                 if(l.type === 'xp') {
                     this.stats.xp += 10 * (this.player.stats.xpMult || 1);
                     this.audio.playCollectXP();
@@ -236,10 +237,8 @@ class Game {
     }
     
     drawGameObjects() {
-        // Draw Player & Health
         this.drawPlayer();
 
-        // Enemies Draw
         this.enemies.forEach(en => {
             this.ctx.font = `${en.scale}px Arial`;
             this.ctx.fillText(en.emoji, en.x, en.y);
@@ -251,25 +250,23 @@ class Game {
         this.ctx.textAlign = "center";
         this.ctx.textBaseline = "middle";
 
-        // Player Emoji
-        this.ctx.font = "40px Arial";
-        this.ctx.fillText("💾", p.x, p.y);
-
-        // Circular Health Bar
         const hpPerc = p.hp / p.maxHp;
         
-        // Background Circle
-        this.ctx.beginPath();
-        this.ctx.arc(p.x, p.y, 30, 0, Math.PI * 2);
-        this.ctx.strokeStyle = "rgba(255,0,0,0.3)";
-        this.ctx.lineWidth = 4;
-        this.ctx.stroke();
+        if (p.x > 0 && p.y > 0) {
+            this.ctx.font = "40px Arial";
+            this.ctx.fillText("💾", p.x, p.y);
 
-        // Health Arc
-        this.ctx.beginPath();
-        this.ctx.arc(p.x, p.y, 30, -Math.PI/2, (-Math.PI/2) + (Math.PI*2 * hpPerc));
-        this.ctx.strokeStyle = `hsl(${hpPerc * 120}, 100%, 50%)`; // Grün zu Rot
-        this.ctx.stroke();
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, 30, 0, Math.PI * 2);
+            this.ctx.strokeStyle = "rgba(255,0,0,0.3)";
+            this.ctx.lineWidth = 4;
+            this.ctx.stroke();
+
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, 30, -Math.PI/2, (-Math.PI/2) + (Math.PI*2 * hpPerc));
+            this.ctx.strokeStyle = `hsl(${hpPerc * 120}, 100%, 50%)`; 
+            this.ctx.stroke();
+        }
     }
 
     checkLevel() {
@@ -309,7 +306,7 @@ class Game {
                 this.upgrades.apply(opt.id);
                 document.getElementById('menu-overlay').classList.add('hidden');
                 this.paused = false;
-                this.audio.playBGM(); // Musik fortsetzen
+                this.audio.playBGM();
             };
             modalBody.appendChild(div);
         });
