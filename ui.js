@@ -11,7 +11,7 @@ class UI {
         this.elVolumeSlider = document.getElementById('volume-slider');
         this.initVolumeControl();
 
-        // Discord Button Event
+        // Discord Button Event 
         document.getElementById('btn-discord').addEventListener('click', () => this.sendToDiscord());
     }
 
