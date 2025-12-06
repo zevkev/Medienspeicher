@@ -61,7 +61,7 @@ class SoundEngine {
     }
 
     // --- Hintergrundmusik (BGM) ---
-   layBGM() {
+   PlayBGM() {
         if (this.bgm.source) return; 
 
         const osc = this.ctx.createOscillator();
