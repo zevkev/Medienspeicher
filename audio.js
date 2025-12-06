@@ -77,7 +77,7 @@ class SoundEngine {
         gain.gain.linearRampToValueAtTime(0.05, this.ctx.currentTime + 3); 
 
         osc.connect(gain);
-        gain.connect(this.masterGain); // Verbindet mit dem Master-Node
+        gain.connect(this.masterGain); // Verbindet mit dem Master-Nod
 
         osc.start();
         
