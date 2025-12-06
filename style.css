@@ -8,6 +8,11 @@
     --primary: #00d2ff;
     --accent: #ff00ea;
     --font-main: 'Futura', 'Jost', sans-serif;
+    
+    /* Rarity Colors */
+    --rarity-common: #aaaaaa;
+    --rarity-rare: #00aaff;
+    --rarity-epic: #ff00ea;
 }
 
 body, html {
@@ -28,41 +33,106 @@ body, html {
     40%, 60% { transform: translate3d(8px, 0, 0); }
 }
 
-canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
+canvas {
+    display: block; position: absolute; top: 0; left: 0; z-index: 1;
+}
 
+/* --- UI CONTAINER --- */
 #ui-layer {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;
-    pointer-events: none; padding: 20px; box-sizing: border-box;
-    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none; /* Allows mouse clicks to pass through to the canvas */
 }
+#ui-layer > * { pointer-events: auto; } /* Re-enable pointer events for UI panels */
 
 .glass-panel {
-    pointer-events: auto; background: var(--glass-bg);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border); border-radius: 16px;
-    padding: 10px 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    padding: 10px 15px; border-radius: 12px; margin: 10px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    display: inline-block;
 }
 
-#level-panel { width: 300px; text-align: center; }
-#xp-bar-container {
-    width: 100%; height: 16px; background: rgba(0,0,0,0.6);
-    border-radius: 8px; margin-top: 5px; position: relative; overflow: hidden;
+#level-panel {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    min-width: 200px; text-align: center;
 }
-#xp-bar-fill {
-    height: 100%; width: 0%;
-    background: linear-gradient(90deg, var(--primary), var(--accent));
-    transition: width 0.3s ease-out;
+#level-display { font-size: 1.5em; font-weight: bold; color: var(--primary); }
+#xp-bar-container { height: 10px; background: rgba(0,0,0,0.3); border-radius: 5px; margin-top: 5px; }
+#xp-bar-fill { height: 100%; background: var(--accent); border-radius: 5px; width: 0%; transition: width 0.3s ease; }
+#xp-text { font-size: 0.7em; margin-top: 5px; }
+
+#settings-panel { position: absolute; top: 0; left: 0; }
+#shop-panel { position: absolute; top: 0; right: 0; text-align: right; }
+
+/* Lootbox Button */
+.shop-btn {
+    background: linear-gradient(90deg, #ffd700, #ff8c00); 
+    border: none; padding: 5px 10px; border-radius: 6px; color: black;
+    font-weight: bold; cursor: pointer; transition: 0.1s;
+    margin-top: 5px;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
-#xp-text {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    font-size: 10px; line-height: 16px; text-shadow: 1px 1px 2px black;
+.shop-btn:active { transform: scale(0.95); }
+
+
+/* --- BOTTOM UI: UPGRADES --- */
+#bottom-ui {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
+#upgrade-details-container {
+    width: 100%;
+    margin-bottom: 5px;
+    padding: 10px;
+    text-align: center;
+}
+#upgrade-details-container h4 { margin: 0; color: var(--accent); }
+#upgrade-details-container p { margin: 5px 0 0 0; font-size: 0.8em; }
+
+
+#upgrade-list-container {
+    display: flex;
+    gap: 5px;
+    padding: 10px;
+    margin: 0;
+}
+
+.upgrade-button {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid var(--glass-border);
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: all 0.1s;
+    line-height: 40px; 
+    text-align: center;
+    position: relative;
+    padding: 0;
+}
+
+.upgrade-button:hover, .upgrade-button.selected {
+    border-color: var(--accent);
+    transform: scale(1.1);
+}
+
+/* --- MODALS & BUTTONS --- */
 button {
     background: linear-gradient(45deg, var(--primary), #0077ff);
     border: none; padding: 10px 20px; border-radius: 8px; color: white;
     font-family: var(--font-main); font-weight: bold; cursor: pointer;
-    transition: 0.1s; margin-top: 5px;
+    transition: 0.1s; margin-top: 15px;
+    text-shadow: 0 0 5px black;
 }
 button:active { transform: scale(0.95); }
 
@@ -79,22 +149,56 @@ button:active { transform: scale(0.95); }
 .glass-modal {
     background: rgba(20, 20, 40, 0.95); border: 1px solid var(--glass-border);
     border-radius: 20px; padding: 40px; text-align: center; min-width: 400px;
+    max-width: 90%;
 }
+.glass-modal h1 { color: var(--accent); }
 
 .upgrade-card {
     background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-    margin: 10px; padding: 15px; border-radius: 10px; cursor: pointer;
-    display: flex; align-items: center; gap: 15px; text-align: left;
-    transition: 0.2s;
+    border-radius: 10px; padding: 15px; margin: 10px 0;
+    display: flex; align-items: center; cursor: pointer;
+    transition: 0.1s;
 }
-.upgrade-card:hover { transform: scale(1.02); background: rgba(255,255,255,0.15); }
-.upgrade-icon { font-size: 30px; }
-.rarity-common { border-color: #aaa; }
-.rarity-rare { border-color: #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
+.upgrade-card:hover { transform: scale(1.02); background: rgba(255,255,255,0.1); }
+.upgrade-card h3 { margin: 0; font-size: 1.2em; }
+.upgrade-card p { margin: 5px 0 0 0; font-size: 0.9em; color: #ccc; }
+.upgrade-icon { font-size: 2em; margin-right: 15px; }
 
-/* Zusätzliches Styling für den Slider */
-#volume-slider {
-    width: 100px; /* Kleinere Breite */
-    height: 5px;
-    margin-top: 5px;
+/* Rarity specific styles */
+.rarity-common { border-left: 5px solid var(--rarity-common); }
+.rarity-rare { border-left: 5px solid var(--rarity-rare); }
+.rarity-epic { border-left: 5px solid var(--rarity-epic); }
+.rarity-epic h3 { color: var(--rarity-epic); text-shadow: 0 0 5px var(--rarity-epic); }
+
+/* Game Over Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 20px 0;
+    text-align: left;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.stats-grid div {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 0.9em;
+}
+.stats-grid span {
+    font-weight: bold;
+    color: var(--primary);
+}
+
+#player-name {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    width: 80%;
+    max-width: 250px;
 }
