@@ -93,7 +93,7 @@ class EnemySystem {
             y = Math.random() * this.game.canvas.height;
         }
 
-        // HP und Schaden Skalierung pro Level (NEU: Stärkere exponentielle Skalierung)
+        // HP und Schaden Skalierung pro Level (Stärkere exponentielle Skalierung)
         const levelFactor = 1 + this.game.stats.level * 0.5; // +50% pro Level
         
         const enemyData = {
