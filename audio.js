@@ -57,9 +57,8 @@ class SoundEngine {
     
     playClick() { this.playTone(500, 'square', 0.05, 0.05, 400); }
 
-    // NEU: Lootbox Sounds
+    // Lootbox Sounds
     playLootSpin() {
-        // Sequenz von schnell ansteigenden Tönen für das Drehrad
         for(let i = 0; i < 5; i++) {
             setTimeout(() => {
                 this.playTone(440 + i * 100, 'square', 0.05, 0.05);
@@ -69,7 +68,6 @@ class SoundEngine {
 
     playLootStop(isWin = true) {
         if (isWin) {
-            // Ein aufsteigender, gewinnender Akkord (Major)
             [523, 659, 784].forEach((freq, i) => {
                 setTimeout(() => {
                     this.playTone(freq, 'sine', 0.4, 0.15, 0.1);
@@ -78,5 +76,10 @@ class SoundEngine {
         } else {
             this.playTone(200, 'square', 0.3, 0.1);
         }
+    }
+    
+    // SFX für Explosionen/Splash-Schaden.
+    playExplosion() {
+        this.playTone(50, 'sawtooth', 0.4, 0.2, 20); 
     }
 }
