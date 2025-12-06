@@ -43,7 +43,7 @@ class Game {
         this.bindEvents();
         document.getElementById('btn-start').addEventListener('click', () => this.startGame());
 
-        this.applyInitialUpgrades(); 
+        this.applyInitialUpgrades(); // Wird ausgeführt, um persistente Upgrades zu laden
 
         this.loop(0);
     }
@@ -54,15 +54,23 @@ class Game {
     }
 
     applyInitialUpgrades() {
-        const loadedData = this.saveData.loadPersistentData();
-        
-        loadedData.upgrades.forEach(up => {
-            for(let i = 0; i < up.level; i++) {
-                this.upgrades.apply(up.id, true);
-            }
-        });
-        
-        this.stats.totalMoneyEarned = loadedData.totalMoneyEarned; 
+        // Hinzugefügter Try-Catch-Block, um sicherzustellen, dass kein Fehler das Skript stoppt.
+        try {
+            const loadedData = this.saveData.loadPersistentData();
+            
+            loadedData.upgrades.forEach(up => {
+                // Überprüft, ob das Upgrade noch in der Datenbank existiert, bevor es angewendet wird
+                if (UPGRADES_DB.find(u => u.id === up.id)) {
+                    for(let i = 0; i < up.level; i++) {
+                        this.upgrades.apply(up.id, true);
+                    }
+                }
+            });
+            
+            this.stats.totalMoneyEarned = loadedData.totalMoneyEarned; 
+        } catch (e) {
+            console.error("Fehler beim Anwenden der gespeicherten Upgrades. Die Spieldaten werden ignoriert.", e);
+        }
     }
 
     startGame() {
@@ -121,7 +129,6 @@ class Game {
             vx: Math.cos(angle) * (this.player.stats.projSpeed || 8),
             vy: Math.sin(angle) * (this.player.stats.projSpeed || 8),
             damage: dmg,
-            // Entfernt: life: (this.player.stats.projLife || 60), (Unendliche Reichweite)
             size: (this.player.stats.projSize || 0),
             
             // Neu: Piercing Logik
@@ -138,7 +145,7 @@ class Game {
         this.enemies.forEach(en => {
             if(Math.hypot(en.x - x, en.y - y) < radius) {
                 en.currentHp -= damage;
-                this.createParticle(en.x, en.y, '💥'); // Emoji-Polish
+                this.createParticle(en.x, en.y, '💥');
             }
         });
     }
@@ -176,21 +183,21 @@ class Game {
             }
 
             this.ctx.font = `${20 + p.size}px Arial`;
-            this.ctx.fillText('💿', p.x, p.y); // CD Emoji Polish
+            this.ctx.fillText('💿', p.x, p.y);
 
             let removed = false;
             
             for(let en of this.enemies) {
                 if(Math.hypot(p.x - en.x, p.y - en.y) < en.scale) {
                     en.currentHp -= p.damage;
-                    this.createParticle(p.x, p.y, '💥'); // Emoji-Polish
+                    this.createParticle(p.x, p.y, '💥');
                     this.audio.playHit();
                     
-                    p.hits++; // Treffer zählen
+                    p.hits++;
                     
                     if(this.player.stats.splash) this.createExplosion(p.x, p.y, 50, p.damage/2);
                     
-                    if(p.hits >= p.maxHits) { // Entfernen, wenn max. Treffer erreicht sind (Durchschuss-Logik)
+                    if(p.hits >= p.maxHits) { 
                         removed = true;
                         break;
                     }
@@ -226,7 +233,6 @@ class Game {
             const dy = this.player.y - l.y;
             const dist = Math.hypot(dx, dy);
             
-            // IMMER zum Spieler ziehen (Geschw. nimmt mit Distanz ab, max. 8px/frame)
             const pullSpeed = Math.min(8, dist / 10); 
             
             l.x += (dx / dist) * pullSpeed;
@@ -245,7 +251,7 @@ class Game {
             }
             
             this.ctx.font = "20px Arial";
-            this.ctx.fillText(l.type==='xp'?'✨':'📀', l.x, l.y); // Emoji-Polish
+            this.ctx.fillText(l.type==='xp'?'✨':'📀', l.x, l.y);
         }
         
         this.drawGameObjects();
@@ -260,7 +266,7 @@ class Game {
             this.ctx.fillText(en.emoji, en.x, en.y);
         });
         
-        this.drawActiveUpgrades(); // NEU: HUD für aktive Upgrades
+        this.drawActiveUpgrades();
     }
 
     drawPlayer() {
@@ -272,7 +278,7 @@ class Game {
         
         if (p.x > 0 && p.y > 0) {
             this.ctx.font = "40px Arial";
-            this.ctx.fillText("💾", p.x, p.y); // Disketten Emoji Polish
+            this.ctx.fillText("💾", p.x, p.y);
 
             this.ctx.beginPath();
             this.ctx.arc(p.x, p.y, 30, 0, Math.PI * 2);
@@ -287,12 +293,11 @@ class Game {
         }
     }
     
-    // NEU: HUD für aktive Upgrades
     drawActiveUpgrades() {
         const u = this.upgrades.activeUpgrades;
         const iconSize = 28;
         const totalWidth = u.length * iconSize * 1.5;
-        const startX = canvas.width / 2 - (totalWidth / 2); // Zentrieren
+        const startX = canvas.width / 2 - (totalWidth / 2);
         const startY = canvas.height - 40; 
         
         this.ctx.textAlign = "center";
@@ -302,12 +307,10 @@ class Game {
             const x = startX + (index * iconSize * 1.5);
             const y = startY;
             
-            // Upgrade-Emoji
             this.ctx.font = `${iconSize}px Arial`;
             this.ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
             this.ctx.fillText(up.emoji, x, y);
             
-            // Level
             this.ctx.font = "12px Arial";
             this.ctx.fillStyle = "white";
             this.ctx.fillText(`L${up.level}`, x, y + iconSize / 2 + 5);
