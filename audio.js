@@ -49,22 +49,34 @@ class SoundEngine {
     playCollectMoney() { this.playTone(2000, 'sine', 0.1, 0.05); setTimeout(() => this.playTone(2500, 'sine', 0.15, 0.05), 60); }
     playLevelUp() {
         [440, 554, 659, 880].forEach((freq, i) => {
-            setTimeout(() => this.playTone(freq, 'triangle', 0.4, 0.2), i * 100);
+            setTimeout(() => {
+                this.playTone(freq, 'sine', 0.15, 0.1);
+            }, i * 50);
         });
     }
     
-    /** NEU: SFX für allgemeine Klicks auf Buttons. */
-    playClick() { this.playTone(400, 'square', 0.05, 0.05); }
+    playClick() { this.playTone(500, 'square', 0.05, 0.05, 400); }
 
-    /** NEU: SFX für Lootbox-Kauf. */
-    playLootbox() {
-        this.playTone(100, 'sine', 0.1, 0.2); 
-        setTimeout(() => this.playTone(1500, 'sine', 0.3, 0.1, 800), 50);
-        setTimeout(() => this.playTone(3000, 'triangle', 0.15, 0.1), 300);
+    // NEU: Lootbox Sounds
+    playLootSpin() {
+        // Sequenz von schnell ansteigenden Tönen für das Drehrad
+        for(let i = 0; i < 5; i++) {
+            setTimeout(() => {
+                this.playTone(440 + i * 100, 'square', 0.05, 0.05);
+            }, i * 50);
+        }
     }
-    
-    /** NEU: SFX für Explosionen/Splash-Schaden. */
-    playExplosion() {
-        this.playTone(50, 'sawtooth', 0.4, 0.2, 20); 
+
+    playLootStop(isWin = true) {
+        if (isWin) {
+            // Ein aufsteigender, gewinnender Akkord (Major)
+            [523, 659, 784].forEach((freq, i) => {
+                setTimeout(() => {
+                    this.playTone(freq, 'sine', 0.4, 0.15, 0.1);
+                }, i * 50);
+            });
+        } else {
+            this.playTone(200, 'square', 0.3, 0.1);
+        }
     }
 }
