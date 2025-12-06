@@ -26,7 +26,7 @@ class SaveData {
 
     savePersistentData() {
         const dataToSave = {
-            upgrades: this.game.upgrades.activeUpgrades.map(u => ({ id: u.id, level: u.level })),
+            upgrades: this.game.upgrades.activeUpgrades.map(u => ({ id: u.id, level: u.level })).filter(u => u.level > 0),
             totalMoneyEarned: this.game.stats.totalMoneyEarned || 0 
         };
         try {
@@ -36,29 +36,53 @@ class SaveData {
         }
     }
 
+    /**
+     * Setzt die Spielstatistiken zurück und wendet alle gespeicherten Upgrades an.
+     * Dies muss nach jeder Upgrade-Wahl oder beim Spielstart erfolgen.
+     */
     resetAndApplyUpgrades() {
         const persistentUpgrades = this.loadPersistentData().upgrades;
+        const pStats = this.game.player.stats;
 
+        // Reset Game Stats
         this.game.stats.level = 1;
         this.game.stats.xp = 0;
         this.game.stats.xpToNext = 100;
         this.game.stats.money = 0;
         
+        // Reset Player Stats
         this.game.player.hp = 100; 
         this.game.player.maxHp = 100;
-        this.game.player.stats = { 
-            damageMult: 1, fireRate: 600, projSpeed: 8, 
-            xpMult: 1, moneyMult: 1, pickupRange: 10000, regen: 0, splash: 0,
-            pierceCount: 0 // Ersetzt projLife
-        };
+        this.game.player.speed = 4; // Basis Speed
+        
+        // Reset Player Stats Multiplikatoren/Additive
+        pStats.damageMult = 1; 
+        pStats.fireRateMult = 1; // Muss 1 sein für die Multiplikation
+        pStats.projSpeed = 8; // Basis Projectile Speed
+        pStats.xpMult = 1; 
+        pStats.moneyMult = 1; 
+        pStats.pickupRange = 10000; 
+        pStats.regen = 0; 
+        pStats.splash = 0; // Nicht verwendet
+        pStats.pierceCount = 0; 
+        pStats.critChance = 0;
+        pStats.critDamage = 0;
+        pStats.projRadius = 5; // Basis Projectile Radius
+        
+        // Reset Active Upgrades
+        this.game.upgrades.activeUpgrades = [];
+        
+        // Upgrades anwenden
+        persistentUpgrades.forEach(savedUpgrade => {
+            const dbEntry = this.game.upgrades.UPGRADES_DB.find(u => u.id === savedUpgrade.id);
+            if (!dbEntry) return;
 
-        this.game.upgrades.activeUpgrades = []; 
-        persistentUpgrades.forEach(up => {
-            for(let i = 0; i < up.level; i++) {
-                this.game.upgrades.apply(up.id, true); 
+            // Führen Sie die Logik für jedes Level aus
+            for(let i = 0; i < savedUpgrade.level; i++) {
+                // Wir verwenden die apply-Methode, setzen aber isSilent auf true, 
+                // um Rekursion und Speichern zu vermeiden
+                this.game.upgrades.apply(savedUpgrade.id, true); 
             }
         });
-        
-        console.log("Roguelite Reset abgeschlossen. Upgrades beibehalten.");
     }
 }
