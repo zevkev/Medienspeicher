@@ -1,25 +1,29 @@
 class SoundEngine {
     constructor() {
         this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        this.muted = false;
         this.masterGain = this.ctx.createGain();
         this.masterGain.connect(this.ctx.destination);
         this.bgm = { source: null, gain: null };
     }
 
-    toggleMute() {
-        this.muted = !this.muted;
-        this.masterGain.gain.value = this.muted ? 0 : 1;
-        // Musik stoppen/starten, falls sie läuft
-        if (this.bgm.source) {
-            this.bgm.gain.gain.setValueAtTime(this.muted ? 0 : 0.05, this.ctx.currentTime);
-        }
-        return this.muted;
+    /**
+     * Setzt die Hauptlautstärke des Spiels.
+     * @param {number} level - Lautstärkepegel von 0 (leise) bis 1 (max).
+     */
+    setVolume(level) {
+        // Konvertiere den UI-Wert (0-100) in einen Gain-Wert (0.0-1.0)
+        const gainValue = level / 100;
+        
+        // Verwende setValueAtTime für eine sofortige Änderung
+        this.masterGain.gain.setValueAtTime(gainValue, this.ctx.currentTime);
+        
+        // Speichere den Wert lokal, damit er beim nächsten Laden beibehalten wird
+        localStorage.setItem('gameVolume', level);
     }
 
-    // Hilfsfunktion: Oszillator mit Envelope
+    // --- SFX ---
     playTone(freq, type, duration, vol = 0.1, slideTo = null) {
-        if (this.muted) return;
+        // Spielen auch bei niedrigster Lautstärke (0) möglich, wenn der Gain-Knoten verbunden ist.
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         
@@ -42,7 +46,6 @@ class SoundEngine {
         osc.stop(this.ctx.currentTime + duration);
     }
 
-    // --- SFX ---
     playShoot() { this.playTone(600 + Math.random()*200, 'triangle', 0.1, 0.08, 200); }
     playHit() { this.playTone(100, 'sawtooth', 0.2, 0.1, 50); }
     playDamage() { 
@@ -59,21 +62,22 @@ class SoundEngine {
 
     // --- Hintergrundmusik (BGM) ---
     playBGM() {
-        if (this.bgm.source) return; // Läuft schon
+        if (this.bgm.source) return; 
 
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         
         osc.type = 'sawtooth'; 
-        osc.frequency.setValueAtTime(90, this.ctx.currentTime); // Tiefe Frequenz
-        osc.frequency.linearRampToValueAtTime(90.5, this.ctx.currentTime + 4); // Leichter Puls
-        osc.loop = true; // Wichtig: Endlosschleife
+        osc.frequency.setValueAtTime(90, this.ctx.currentTime); 
+        osc.frequency.linearRampToValueAtTime(90.5, this.ctx.currentTime + 4); 
+        osc.loop = true; 
 
+        // Die BGM wird leiser an den Master-Gain-Node gesendet, da sie im Hintergrund läuft
         gain.gain.setValueAtTime(0.001, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.05, this.ctx.currentTime + 3); // Fade-in
+        gain.gain.linearRampToValueAtTime(0.05, this.ctx.currentTime + 3); 
 
         osc.connect(gain);
-        gain.connect(this.masterGain);
+        gain.connect(this.masterGain); // Verbindet mit dem Master-Node
 
         osc.start();
         
