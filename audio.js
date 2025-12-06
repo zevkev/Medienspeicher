@@ -33,21 +33,25 @@ class SoundEngine {
         osc.type = type;
         osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
         if (slideTo) {
-            osc.frequency.linearRampToValueAtTime(slideTo, this.ctx.currentTime + duration);
+            osc.frequency.exponentialRampToValueAtTime(slideTo, this.ctx.currentTime + duration);
         }
 
         gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
 
         osc.connect(gain);
         gain.connect(this.masterGain);
+
         osc.start();
         osc.stop(this.ctx.currentTime + duration);
     }
 
-    playShoot() { this.playTone(300, 'square', 0.05, 0.15, 200); }
-    playDamage() { this.playTone(80, 'sawtooth', 0.2, 0.3, 50); }
-    playHit() { this.playTone(800 + Math.random()*200, 'notch', 0.05, 0.15, 600); }
+    playShoot() { this.playTone(600 + Math.random()*200, 'triangle', 0.1, 0.08, 200); }
+    playHit() { this.playTone(100, 'sawtooth', 0.2, 0.1, 50); }
+    playDamage() { 
+        this.playTone(80, 'square', 0.3, 0.2, 30); 
+        this.playTone(150, 'sawtooth', 0.3, 0.2, 50); 
+    }
     playCollectXP() { this.playTone(1000 + Math.random()*800, 'sine', 0.15, 0.05); }
     playCollectMoney() { this.playTone(2000, 'sine', 0.1, 0.05); setTimeout(() => this.playTone(2500, 'sine', 0.15, 0.05), 60); }
     playLevelUp() {
@@ -56,8 +60,36 @@ class SoundEngine {
         });
     }
 
-    // Die Hintergrundmusik wurde in der Logik entfernt, da sie in dieser Art von Spiel
-    // oft störend wirkt und die Performance beeinflusst. Die Funktionen sind leer.
-    playBGM() {}
-    stopBGM() {}
+    // --- Hintergrundmusik (BGM) ---
+   layBGM() {
+        if (this.bgm.source) return; 
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc.type = 'sawtooth'; 
+        osc.frequency.setValueAtTime(90, this.ctx.currentTime); 
+        osc.frequency.linearRampToValueAtTime(90.5, this.ctx.currentTime + 4); 
+        osc.loop = true; 
+
+        // Die BGM wird leiser an den Master-Gain-Node gesendet, da sie im Hintergrund läuft
+        gain.gain.setValueAtTime(0.001, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.05, this.ctx.currentTime + 3); 
+
+        osc.connect(gain);
+        gain.connect(this.masterGain); // Verbindet mit dem Master-Nod
+
+        osc.start();
+        
+        this.bgm.source = osc;
+        this.bgm.gain = gain;
+    }
+
+    stopBGM() {
+        if (this.bgm.source) {
+            this.bgm.gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 1);
+            this.bgm.source.stop(this.ctx.currentTime + 1.1);
+            this.bgm.source = null;
+        }
+    }
 }
