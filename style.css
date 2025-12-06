@@ -1,0 +1,150 @@
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap'); 
+/* Futura ist auf vielen Web-Systemen nicht standard, Jost ist eine sehr ähnliche Free-Alternative */
+
+:root {
+    --bg-dark: #0b102e;
+    --bg-purple: #1a0b2e;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.15);
+    --primary: #00d2ff;
+    --accent: #ff00ea;
+    --font-main: 'Futura', 'Jost', sans-serif;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--bg-purple), var(--bg-dark));
+    font-family: var(--font-main);
+    color: white;
+    user-select: none;
+}
+
+canvas {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none; /* Klicks gehen durch zum Canvas */
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+/* Liquid Glass Styling */
+.glass-panel {
+    pointer-events: auto;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 10px 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    transition: transform 0.2s;
+}
+
+.glass-panel:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Specific Panels */
+#level-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 300px;
+}
+
+#xp-bar-container {
+    width: 100%;
+    height: 10px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 5px;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+#xp-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    transition: width 0.2s;
+}
+
+button {
+    background: linear-gradient(45deg, var(--primary), #0077ff);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: white;
+    font-family: var(--font-main);
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+/* Modal / Shop / Level Up */
+#menu-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.glass-modal {
+    background: rgba(20, 20, 40, 0.9);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    min-width: 400px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+}
+
+/* Upgrade Cards */
+.upgrade-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    margin: 10px;
+    padding: 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.upgrade-card:hover { transform: scale(1.05); background: rgba(255,255,255,0.15); }
+
+.rarity-common { border-color: #aaa; color: #fff; }
+.rarity-rare { border-color: #00d2ff; color: #00d2ff; box-shadow: 0 0 10px rgba(0, 210, 255, 0.2); }
+.rarity-epic { border-color: #ff00ea; color: #ff00ea; box-shadow: 0 0 15px rgba(255, 0, 234, 0.3); }
+.rarity-legendary { border-color: #ffd700; color: #ffd700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
