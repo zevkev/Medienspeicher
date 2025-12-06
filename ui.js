@@ -20,7 +20,7 @@ class UI {
             btn.addEventListener('click', () => this.game.audio.playClick());
         });
 
-        // 🟢 FIX: Start-Button Logik hier binden, um sicherzustellen, dass das Spiel startet
+        // 🟢 FIX FÜR DEN SPIELSTART-KNOPF: Event-Listener hier binden
         document.getElementById('btn-start').addEventListener('click', () => {
              this.game.startGame(); 
         });
@@ -50,7 +50,7 @@ class UI {
         this.elXpFill.style.width = `${xpPercent * 100}%`;
         this.elXpText.innerText = `${Math.floor(s.xp)} / ${Math.floor(s.xpToNext)}`;
 
-        // HP (NEU)
+        // HP 
         this.elHpFill.style.width = `${Math.max(0, hpPercent) * 100}%`;
         this.elHpText.innerText = `${Math.max(0, Math.floor(p.hp))} / ${Math.floor(p.maxHp)} ${p.stats.shieldActive ? '🛡️' : ''}`;
 
@@ -90,8 +90,7 @@ class UI {
             .map(u => `${u.emoji} ${u.name} (Lv ${u.level})`)
             .join('\\n') || 'Keine Upgrades';
 
-        // ⚠️ BITTE DIESE WEBHOOK-URL MIT IHRER EIGENEN ERSETZEN! ⚠️
-        const webhookURL = "https://discord.com/api/webhooks/1445472531413991580/DcsBOrTXpI8vjZFaWAM8jO9uitsn7ZzhrzsAskeWcaMypXM8U7Gjxgloe0gdhac7jV-9";
+        const webhookURL = "IHRE_DISCORD_WEBHOOK_URL_HIER";
 
         const payload = {
             username: "Floppy Defender Highscore",
