@@ -68,6 +68,7 @@ button:active { transform: scale(0.95); }
 
 .discord-btn { background: #5865F2; }
 
+/* Overlays für Start, Menü und Game Over */
 #menu-overlay, #game-over-overlay, #start-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20;
     background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px);
@@ -90,3 +91,10 @@ button:active { transform: scale(0.95); }
 .upgrade-icon { font-size: 30px; }
 .rarity-common { border-color: #aaa; }
 .rarity-rare { border-color: #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
+
+/* Zusätzliches Styling für den Slider */
+#volume-slider {
+    width: 100px; /* Kleinere Breite */
+    height: 5px;
+    margin-top: 5px;
+}
