@@ -1,13 +1,12 @@
 // upgrades.js 
 
 const UPGRADES_DB = [
-    // --- COMMON (13) ---
+    // --- COMMON (12) ---
     { id: 'dmg', name: 'Schaden+', emoji: '🗡️', rarity: 'common', desc: 'Erhöht Schaden um 15%', type: 'stat', stat: 'damageMult', val: 0.15 },
     { id: 'att_spd', name: 'Feuerrate', emoji: '⚡', rarity: 'common', desc: 'Schießt 10% schneller', type: 'stat', stat: 'fireRateMult', val: 0.9 },
     { id: 'proj_spd', name: 'Projektil Speed', emoji: '🏹', rarity: 'common', desc: 'Schüsse fliegen schneller', type: 'stat', stat: 'projSpeed', val: 1.2 },
     { id: 'hp_max', name: 'Max Leben', emoji: '❤️', rarity: 'common', desc: '+20 Max HP', type: 'stat', stat: 'maxHp', val: 20 },
     { id: 'regen', name: 'Regeneration', emoji: '🥑', rarity: 'common', desc: '+1 HP / Sek', type: 'stat', stat: 'regen', val: 1 },
-    // ENTFERNT: { id: 'move_spd', name: 'Bewegung', emoji: '👟', rarity: 'common', desc: 'Spieler ist schneller (N/A)', type: 'dummy', desc: 'Du fühlst dich leichter' }, 
     { id: 'greed', name: 'Gier', emoji: '🤑', rarity: 'common', desc: '+20% Geld', type: 'stat', stat: 'moneyMult', val: 0.2 },
     { id: 'crit', name: 'Krit Chance', emoji: '🎯', rarity: 'common', desc: '+5% Krit Chance', type: 'stat', stat: 'critChance', val: 0.05 },
     { id: 'crit_dmg', name: 'Krit Schaden', emoji: '💥', rarity: 'common', desc: '+50% Krit Schaden', type: 'stat', stat: 'critDmg', val: 0.5 },
@@ -15,8 +14,7 @@ const UPGRADES_DB = [
     { id: 'size', name: 'Große Kaliber', emoji: '🎾', rarity: 'common', desc: 'Größere Projektile', type: 'stat', stat: 'projSize', val: 5 },
     { id: 'thorn', name: 'Dornen', emoji: '🌵', rarity: 'common', desc: 'Gegner nehmen Schaden bei Berührung', type: 'stat', stat: 'thorns', val: 5 },
     { id: 'knock', name: 'Knockback', emoji: '🥊', rarity: 'common', desc: 'Wirft Gegner zurück', type: 'stat', stat: 'knockback', val: 2 },
-    { id: 'piercing', name: 'Durchschuss', emoji: '💿', rarity: 'common', desc: 'Projektile durchdringen 1 zusätzlichen Feind.', type: 'stat', stat: 'pierceCount', val: 1 }, // Neu: Durchschuss
-    // ENTFERNT: { id: 'life', name: 'Projektildauer', emoji: '⏳', rarity: 'common', desc: 'Schüsse fliegen weiter', type: 'stat', stat: 'projLife', val: 20 },
+    { id: 'piercing', name: 'Durchschuss', emoji: '💿', rarity: 'common', desc: 'Projektile durchdringen 1 zusätzlichen Feind.', type: 'stat', stat: 'pierceCount', val: 1 },
 
     // --- RARE / ACTIVE (5) ---
     { 
@@ -59,8 +57,6 @@ class UpgradeManager {
         let opts = [];
         for(let i=0; i<count; i++) {
             const item = UPGRADES_DB[Math.floor(Math.random() * UPGRADES_DB.length)];
-            // Stellen Sie sicher, dass keine Duplikate in den Optionen sind, aber das ist für eine zufällige Auswahl nicht unbedingt erforderlich.
-            // Der Einfachheit halber belassen wir die Logik wie sie ist.
             opts.push(item);
         }
         return opts;
@@ -68,6 +64,13 @@ class UpgradeManager {
 
     apply(id, isSilent = false) {
         const dbEntry = UPGRADES_DB.find(u => u.id === id);
+        
+        // Fügt eine Sicherheitsüberprüfung hinzu, falls ein Upgrade in den gespeicherten Daten nicht mehr existiert.
+        if (!dbEntry) {
+            console.warn(`Upgrade-ID ${id} existiert nicht mehr in UPGRADES_DB und wird ignoriert.`);
+            return;
+        }
+
         let active = this.activeUpgrades.find(u => u.id === id);
 
         if(!active) {
@@ -84,7 +87,6 @@ class UpgradeManager {
                 if(!isSilent) this.game.player.hp += dbEntry.val; 
             }
             else {
-                 // Fügt den Wert zum Stat hinzu (gilt auch für pierceCount)
                  this.game.player.stats[dbEntry.stat] = (this.game.player.stats[dbEntry.stat] || 0) + dbEntry.val;
             }
         }
