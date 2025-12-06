@@ -33,7 +33,7 @@ class Game {
                 projLife: 60, // Basislife (Frames)
                 xpMult: 1, 
                 moneyMult: 1, 
-                pickupRange: 100, 
+                // pickupRange: 100, // <--- ENTFERNT
                 regen: 0, 
                 splashChance: 0,
                 critChance: 0, 
@@ -252,23 +252,19 @@ class Game {
             }
         }
 
-        // Loot & Globaler Magnet
+        // Loot & Globaler Magnet (ANGEPASST)
         for(let i=this.loot.length-1; i>=0; i--) {
             let l = this.loot[i];
             const dx = this.player.x - l.x;
             const dy = this.player.y - l.y;
             const dist = Math.hypot(dx, dy);
             
-            // Pickup-Range kommt vom Spieler-Stat
-            const magnetRange = this.player.stats.pickupRange;
+            // Loot zieht IMMER zum Spieler, wie gewünscht
+            // Blut-Drops fliegen schneller (20), normales Loot mit 8
+            const pullSpeed = Math.min(l.isVampireDrop ? 20 : 8, dist / 10); 
             
-            if (dist < magnetRange) {
-                // Blut-Drops fliegen schneller (20), normales Loot mit 8
-                const pullSpeed = Math.min(l.isVampireDrop ? 20 : 8, dist / 10); 
-                
-                l.x += (dx / dist) * pullSpeed;
-                l.y += (dy / dist) * pullSpeed;
-            }
+            l.x += (dx / dist) * pullSpeed;
+            l.y += (dy / dist) * pullSpeed;
             
             if(dist < 20) {
                 if(l.type === 'xp') {
