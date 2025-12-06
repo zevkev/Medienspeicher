@@ -3,29 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Floppy Survivor</title>
+    <title>Floppy Survivor V2</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="ui-layer">
-        
         <div class="glass-panel" id="settings-panel">
-            <button id="btn-mute">🔊 Sound an</button>
+            <button id="btn-mute">🔊 Sound</button>
         </div>
 
         <div class="glass-panel" id="level-panel">
             <div id="level-display">LEVEL 1</div>
             <div id="xp-bar-container">
                 <div id="xp-bar-fill"></div>
+                <div id="xp-text">0 / 100 XP</div>
             </div>
         </div>
 
         <div class="glass-panel" id="shop-panel">
             <div id="money-display">📀 0</div>
-            <button id="btn-shop" class="shop-btn">Lootbox kaufen (📀 <span id="lootbox-cost">100</span>)</button>
+            <button id="btn-shop" class="shop-btn">Lootbox (📀 <span id="lootbox-cost">100</span>)</button>
         </div>
+    </div>
 
+    <div id="game-over-overlay" class="hidden">
+        <div class="glass-modal">
+            <h1>💀 GAME OVER 💀</h1>
+            <p>Du hast tapfer gekämpft!</p>
+            <div class="stats-grid">
+                <div>Level: <span id="go-level">0</span></div>
+                <div>Geld: <span id="go-money">0</span></div>
+            </div>
+            <br>
+            <button id="btn-discord" class="discord-btn">🏆 Score an Discord senden</button>
+            <br><br>
+            <button onclick="location.reload()">Neustart</button>
+        </div>
     </div>
 
     <div id="menu-overlay" class="hidden">
@@ -38,6 +52,8 @@
     <canvas id="gameCanvas"></canvas>
 
     <script src="audio.js"></script>
+    <script src="ui.js"></script>
+    <script src="enemies.js"></script>
     <script src="upgrades.js"></script>
     <script src="game.js"></script>
 </body>
