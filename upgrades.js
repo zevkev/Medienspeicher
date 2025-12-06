@@ -1,6 +1,7 @@
-// Wir nutzen eine Factory funktion, damit wir dynamisch skalieren können
+// upgrades.js
+
 const UPGRADES_DB = [
-    // --- COMMON (15) ---
+    // --- COMMON (14) ---
     { id: 'dmg', name: 'Schaden+', emoji: '🗡️', rarity: 'common', desc: 'Erhöht Schaden um 15%', type: 'stat', stat: 'damageMult', val: 0.15 },
     { id: 'att_spd', name: 'Feuerrate', emoji: '⚡', rarity: 'common', desc: 'Schießt 10% schneller', type: 'stat', stat: 'fireRateMult', val: 0.9 },
     { id: 'proj_spd', name: 'Projektil Speed', emoji: '🏹', rarity: 'common', desc: 'Schüsse fliegen schneller', type: 'stat', stat: 'projSpeed', val: 1.2 },
@@ -8,7 +9,6 @@ const UPGRADES_DB = [
     { id: 'regen', name: 'Regeneration', emoji: '🥑', rarity: 'common', desc: '+1 HP / Sek', type: 'stat', stat: 'regen', val: 1 },
     { id: 'move_spd', name: 'Bewegung', emoji: '👟', rarity: 'common', desc: 'Spieler ist schneller (N/A)', type: 'dummy', desc: 'Du fühlst dich leichter' }, 
     { id: 'greed', name: 'Gier', emoji: '🤑', rarity: 'common', desc: '+20% Geld', type: 'stat', stat: 'moneyMult', val: 0.2 },
-    { id: 'magnet', name: 'Magnet', emoji: '🧲', rarity: 'common', desc: 'Sammelradius erhöht', type: 'stat', stat: 'pickupRange', val: 30 },
     { id: 'crit', name: 'Krit Chance', emoji: '🎯', rarity: 'common', desc: '+5% Krit Chance', type: 'stat', stat: 'critChance', val: 0.05 },
     { id: 'crit_dmg', name: 'Krit Schaden', emoji: '💥', rarity: 'common', desc: '+50% Krit Schaden', type: 'stat', stat: 'critDmg', val: 0.5 },
     { id: 'luck', name: 'Glück', emoji: '🍀', rarity: 'common', desc: 'Mehr XP', type: 'stat', stat: 'xpMult', val: 0.2 },
@@ -24,7 +24,6 @@ const UPGRADES_DB = [
         type: 'active',
         interval: 5000,
         onTick: (game, level) => {
-            // Bombe werfen auf zufälligen Gegner
             if(game.enemies.length > 0) {
                 const target = game.enemies[Math.floor(Math.random()*game.enemies.length)];
                 game.createExplosion(target.x, target.y, 100 + (level*20), 50 + (level*10));
@@ -38,7 +37,6 @@ const UPGRADES_DB = [
         type: 'active',
         interval: 4000,
         onTick: (game, level) => {
-             // Protector schießt
              if(game.enemies.length > 0) {
                  const t = game.enemies[0];
                  game.shootProjectile(game.player.x + 40, game.player.y - 40, t.x, t.y, 15 * level);
@@ -53,7 +51,7 @@ const UPGRADES_DB = [
 class UpgradeManager {
     constructor(game) {
         this.game = game;
-        this.activeUpgrades = []; // { id, level, ...data }
+        this.activeUpgrades = []; 
     }
 
     getOptions(count = 3) {
@@ -65,7 +63,7 @@ class UpgradeManager {
         return opts;
     }
 
-    apply(id) {
+    apply(id, isSilent = false) {
         const dbEntry = UPGRADES_DB.find(u => u.id === id);
         let active = this.activeUpgrades.find(u => u.id === id);
 
@@ -76,22 +74,23 @@ class UpgradeManager {
             active.level++;
         }
 
-        // Apply Logic
         if(dbEntry.type === 'stat') {
             if(dbEntry.stat === 'fireRateMult') this.game.player.stats.fireRate *= dbEntry.val;
             else if(dbEntry.stat === 'maxHp') {
                 this.game.player.maxHp += dbEntry.val;
-                this.game.player.hp += dbEntry.val;
+                if(!isSilent) this.game.player.hp += dbEntry.val; 
             }
             else {
-                 // Generic Adder
                  this.game.player.stats[dbEntry.stat] = (this.game.player.stats[dbEntry.stat] || 0) + dbEntry.val;
             }
         }
 
-        // Active Items Cooldown Reduce per Level
         if(dbEntry.type === 'active') {
-             active.interval = Math.max(500, active.interval * 0.9); // 10% schneller pro Level
+             active.interval = Math.max(500, active.interval * 0.9); 
+        }
+
+        if(!isSilent) {
+            this.game.saveData.savePersistentData();
         }
     }
 
