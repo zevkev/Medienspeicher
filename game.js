@@ -9,7 +9,7 @@ class Game {
         this.canvas = canvas;
         this.ctx = ctx;
         this.audio = new SoundEngine(); 
-        this.ui = new UI(this);
+        this.ui = new UI(this); // UI initialisiert sich hier und bindet den Start-Button
         this.enemySystem = new EnemySystem(this);
         this.upgrades = new UpgradeManager(this);
         this.saveData = new SaveData(this); 
@@ -41,8 +41,9 @@ class Game {
         document.getElementById('game-over-overlay').classList.add('hidden');
         
         this.bindEvents();
-        // Event Listener für Start-Button ist bereits in UI.js für Klick-SFX eingebunden, Logik hier:
-        document.getElementById('btn-start').addEventListener('click', () => this.startGame()); 
+        // HINWEIS: Der Event Listener für btn-start wurde in UI.js verschoben, um Doppel-Bindung zu vermeiden.
+        // Falls Sie den alten Code aus der UI.js von vorhin hatten:
+        // document.getElementById('btn-start').addEventListener('click', () => this.startGame()); 
 
         this.applyInitialUpgrades(); 
 
@@ -75,6 +76,7 @@ class Game {
     startGame() {
         this.saveData.resetAndApplyUpgrades(); 
         
+        // DIESE ZWEI ZEILEN SIND KRITISCH, damit das Spiel startet:
         document.getElementById('start-overlay').classList.add('hidden');
         document.getElementById('ui-layer').classList.remove('hidden');
         
@@ -136,7 +138,7 @@ class Game {
 
     createExplosion(x, y, radius, damage) {
         this.explosions.push({ x, y, r: 0, maxR: radius, alpha: 1 });
-        this.audio.playExplosion(); // NEUER SFX
+        this.audio.playExplosion(); 
         
         this.enemies.forEach(en => {
             if(Math.hypot(en.x - x, en.y - y) < radius) {
