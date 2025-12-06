@@ -17,22 +17,37 @@ class Game {
         this.paused = true; 
         this.gameOver = false;
         
-        this.stats = { level: 1, xp: 0, xpToNext: 100, money: 0, lootboxCost: 100, totalMoneyEarned: 0 };
+        // NEUE STATS: runCount, runMoneyEarned
+        this.stats = { level: 1, xp: 0, xpToNext: 100, money: 0, lootboxCost: 100, totalMoneyEarned: 0, runCount: 0, runMoneyEarned: 0 };
         
         this.player = {
             x: -100, 
             y: -100,
             hp: 100, maxHp: 100,
+            // Basis-Stats mit neuen Upgrades
             stats: { 
-                damageMult: 1, fireRate: 600, projSpeed: 8, 
-                xpMult: 1, moneyMult: 1, pickupRange: 10000, regen: 0, splash: 0
+                baseDamage: 20, 
+                damageMult: 1, 
+                fireRate: 600, // Cooldown in ms
+                projSpeed: 8, 
+                projLife: 60, // Basislife (Frames)
+                xpMult: 1, 
+                moneyMult: 1, 
+                pickupRange: 100, 
+                regen: 0, 
+                splashChance: 0,
+                critChance: 0, 
+                critDmg: 0.5, 
+                knockback: 0, 
+                pierce: 0,
+                lifesteal: 0 
             },
             lastShot: 0
         };
 
         this.enemies = [];
         this.projectiles = [];
-        this.loot = [];
+        this.loot = []; 
         this.particles = [];
         this.explosions = [];
 
@@ -42,26 +57,12 @@ class Game {
         this.bindEvents();
         document.getElementById('btn-start').addEventListener('click', () => this.startGame());
 
-        this.applyInitialUpgrades(); 
-
         this.loop(0);
     }
     
     bindEvents() {
         this.shootHandler = (e) => this.inputShoot(e);
         canvas.addEventListener('mousedown', this.shootHandler);
-    }
-
-    applyInitialUpgrades() {
-        const loadedData = this.saveData.loadPersistentData();
-        
-        loadedData.upgrades.forEach(up => {
-            for(let i = 0; i < up.level; i++) {
-                this.upgrades.apply(up.id, true);
-            }
-        });
-        
-        this.stats.totalMoneyEarned = loadedData.totalMoneyEarned; 
     }
 
     startGame() {
@@ -74,7 +75,6 @@ class Game {
         this.player.y = canvas.height / 2;
         
         this.paused = false;
-        this.audio.playBGM(); 
         
         this.spawnInterval = setInterval(() => { if(!this.paused && !this.gameOver) this.enemySystem.spawn(); }, 1000);
         this.regenInterval = setInterval(() => { 
@@ -83,6 +83,8 @@ class Game {
                 if(this.player.hp > this.player.maxHp) this.player.hp = this.player.maxHp;
             }
         }, 1000);
+        
+        this.ui.updateActiveUpgrades(); 
     }
 
     takeDamage(amount) {
@@ -95,11 +97,15 @@ class Game {
         if(this.player.hp <= 0) {
             this.player.hp = 0;
             this.gameOver = true;
-            this.audio.stopBGM(); 
             clearInterval(this.spawnInterval); 
             clearInterval(this.regenInterval);
             this.ui.showGameOver(); 
         }
+    }
+    
+    heal(amount) {
+        this.player.hp += amount;
+        if(this.player.hp > this.player.maxHp) this.player.hp = this.player.maxHp;
     }
 
     inputShoot(e) {
@@ -108,35 +114,43 @@ class Game {
         
         this.player.lastShot = Date.now();
         const rect = canvas.getBoundingClientRect();
+        
         this.shootProjectile(this.player.x, this.player.y, e.clientX - rect.left, e.clientY - rect.top);
     }
 
     shootProjectile(sx, sy, tx, ty, damageOverride = null) {
         const angle = Math.atan2(ty - sy, tx - sx);
-        const dmg = damageOverride || (20 * (this.player.stats.damageMult || 1));
+        
+        // Kritischer Treffer-Check
+        let crit = false;
+        let finalDmg = this.player.stats.baseDamage * (this.player.stats.damageMult || 1);
+        if (Math.random() < this.player.stats.critChance) {
+            finalDmg *= (1 + (this.player.stats.critDmg || 0.5));
+            crit = true;
+        }
+        
+        const dmg = damageOverride || finalDmg;
         
         this.projectiles.push({
             x: sx, y: sy,
-            vx: Math.cos(angle) * (this.player.stats.projSpeed || 8),
-            vy: Math.sin(angle) * (this.player.stats.projSpeed || 8),
+            vx: Math.cos(angle) * this.player.stats.projSpeed,
+            vy: Math.sin(angle) * this.player.stats.projSpeed,
             damage: dmg,
-            life: (this.player.stats.projLife || 60),
-            size: (this.player.stats.projSize || 0)
+            life: this.player.stats.projLife, // Reichweite (Frames)
+            size: (this.player.stats.projSize || 0),
+            crit: crit,
+            pierceLeft: this.player.stats.pierce || 0, // NEU: Durchschlag
+            enemiesHit: new Set() // NEU: Verhindert Mehrfachschaden pro Schuss bei Piercing
         });
         this.audio.playShoot();
     }
 
     createExplosion(x, y, radius, damage) {
-        // Explosion state (rendered over several frames)
-        this.explosions.push({ x, y, r: 0, maxR: radius, alpha: 1, damage });
-
-        // Play sound immediately
+        this.explosions.push({ x, y, r: 0, maxR: radius, alpha: 1 });
         this.audio.playHit();
-
-        // Apply immediate damage (optional) — keep this so enemies nearby take damage right away
+        
         this.enemies.forEach(en => {
-            const d = Math.hypot(en.x - x, en.y - y);
-            if(d <= radius) {
+            if(Math.hypot(en.x - x, en.y - y) < radius) {
                 en.currentHp -= damage;
                 this.createParticle(en.x, en.y, '💥');
             }
@@ -144,188 +158,149 @@ class Game {
     }
 
     createParticle(x, y, char) {
-        // life in frames
-        this.particles.push({
-            x, y,
-            vx: (Math.random() - 0.5) * 4,
-            vy: (Math.random() - 0.5) * 4 - 1,
-            char,
-            life: 30,
-            age: 0
-        });
+        this.particles.push({x, y, vx:(Math.random()-0.5)*5, vy:(Math.random()-0.5)*5, char, life:1});
     }
 
     loop(timestamp) {
         requestAnimationFrame((t) => this.loop(t));
         
-        // Reset transform & global canvas state each frame to avoid leaked state
-        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-        this.ctx.globalCompositeOperation = 'source-over';
-        this.ctx.globalAlpha = 1;
-
         if(this.paused || this.gameOver) {
-            // When paused or game over, clear and draw minimal UI / player if needed
-            this.ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (this.gameOver || document.getElementById('start-overlay').classList.contains('hidden')) {
-                // draw player in paused state if player is on-screen
-                if (this.player.x > 0 && this.player.y > 0) this.drawPlayer();
+            if (!document.getElementById('start-overlay').classList.contains('hidden') || this.gameOver || this.paused) {
+                this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+                this.drawPlayer();
             }
             return;
         }
 
-        // Normal frame
         this.ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         this.upgrades.update(timestamp);
         this.enemySystem.update();
-
-        // PROJECTILES
+        
+        // Projektile Update
         for(let i=this.projectiles.length-1; i>=0; i--) {
             let p = this.projectiles[i];
             p.x += p.vx; p.y += p.vy; p.life--;
-
-            // draw projectile (use save/restore in case font or other state changes later)
-            this.ctx.save();
-            this.ctx.font = `${20 + (p.size || 0)}px Arial`;
-            this.ctx.textAlign = "center";
-            this.ctx.textBaseline = "middle";
-            this.ctx.fillText('💿', p.x, p.y);
-            this.ctx.restore();
-
-            let hit = false;
-            if(p.life <= 0) hit = true;
             
-            for(let ei = this.enemies.length - 1; ei >= 0; ei--) {
-                const en = this.enemies[ei];
-                const r = en.scale || 16;
-                if(Math.hypot(p.x - en.x, p.y - en.y) < r) {
+            this.ctx.font = `${20 + p.size}px Arial`;
+            this.ctx.fillStyle = p.crit ? 'yellow' : 'white';
+            this.ctx.fillText('💿', p.x, p.y);
+
+            let destroyed = false;
+            
+            // Reichweite
+            if(p.life <= 0) destroyed = true;
+            
+            // Kollisionscheck
+            for(let en of this.enemies) {
+                // Nur prüfen, wenn der Gegner noch nicht von diesem Projektil getroffen wurde
+                if(!p.enemiesHit.has(en) && Math.hypot(p.x - en.x, p.y - en.y) < en.scale / 2) {
+                    
                     en.currentHp -= p.damage;
-                    this.createParticle(p.x, p.y, '✨');
+                    this.createParticle(p.x, p.y, p.crit ? '💥' : '✨');
                     this.audio.playHit();
-                    hit = true;
-                    if(this.player.stats.splash) this.createExplosion(p.x, p.y, 50, p.damage/2);
+                    
+                    // Splash Check (mit Wahrscheinlichkeit)
+                    if(Math.random() < this.player.stats.splashChance) {
+                        this.createExplosion(p.x, p.y, 50, p.damage/2);
+                    }
+                    
+                    // Piercing/Durchschlag
+                    if(p.pierceLeft > 0) {
+                        p.pierceLeft--;
+                        p.enemiesHit.add(en);
+                    } else {
+                        destroyed = true;
+                    }
                     break;
                 }
             }
-            if(hit) this.projectiles.splice(i, 1);
+            
+            if(destroyed) this.projectiles.splice(i, 1);
         }
 
-        // EXPLOSIONS (animated, safe drawing)
+        // Explosionen Update
         for(let i=this.explosions.length-1; i>=0; i--) {
             let ex = this.explosions[i];
-            ex.r += 6;
-            ex.alpha -= 0.06;
-            ex.alpha = Math.max(0, ex.alpha);
-
-            // safe drawing: save/restore so composite/alpha/etc cannot leak
-            this.ctx.save();
-            // optional nice blend mode for explosion
-            this.ctx.globalCompositeOperation = 'lighter';
-
-            // use radial gradient for nicer look (clamped alpha)
-            const grad = this.ctx.createRadialGradient(ex.x, ex.y, 0, ex.x, ex.y, ex.r || 1);
-            grad.addColorStop(0, `rgba(255,255,200,${ex.alpha})`);
-            grad.addColorStop(0.4, `rgba(255,150,0,${ex.alpha * 0.9})`);
-            grad.addColorStop(1, `rgba(255,0,0,0)`);
-
-            this.ctx.fillStyle = grad;
+            ex.r += 5; ex.alpha -= 0.05;
             this.ctx.beginPath();
             this.ctx.arc(ex.x, ex.y, ex.r, 0, Math.PI*2);
+            this.ctx.fillStyle = `rgba(255, 100, 0, ${ex.alpha})`;
             this.ctx.fill();
-            this.ctx.restore();
-
-            // apply damage to any enemies that enter the expanding radius this frame
-            // (optional - if you already applied immediate damage you can skip)
-            for(let ei = this.enemies.length - 1; ei >= 0; ei--) {
-                const en = this.enemies[ei];
-                if(Math.hypot(en.x - ex.x, en.y - ex.y) <= ex.r) {
-                    // small tick-damage (make sure not to over-damage each frame)
-                    // here we apply only once when the explosion reaches half size (example rule)
-                    if(!ex._damagedOnce && ex.r >= ex.maxR * 0.2) {
-                        en.currentHp -= (ex.damage || 0);
-                        ex._damagedOnce = true;
-                    }
-                }
-            }
-
-            if(ex.alpha <= 0 || ex.r > ex.maxR * 1.2) this.explosions.splice(i, 1);
+            if(ex.alpha <= 0) this.explosions.splice(i, 1);
         }
 
-        // ENEMY DEATHS
+        // Gegner töten & Loot droppen
         for(let i=this.enemies.length-1; i>=0; i--) {
             if(this.enemies[i].currentHp <= 0) {
                 const en = this.enemies[i];
-                this.loot.push({x:en.x, y:en.y, type:'xp'});
-                if(Math.random() > 0.7) this.loot.push({x:en.x+10, y:en.y, type:'money'});
+                
+                const xpAmount = en.xp || 10;
+                this.loot.push({x:en.x, y:en.y, type:'xp', amount: xpAmount});
+                
+                if(Math.random() > 0.7 || en.loot === 'money') {
+                    this.loot.push({x:en.x+10, y:en.y, type:'money', amount: 10});
+                }
+                
+                // Lifesteal/Vampir-HP-Drop (Blut-Drop)
+                if(this.player.stats.lifesteal && Math.random() < this.player.stats.lifesteal) {
+                    this.loot.push({x:en.x-10, y:en.y, type:'hp', amount: 10, isVampireDrop: true}); // isVampireDrop für schnellen Magnet
+                }
+                
                 this.enemies.splice(i, 1);
-                this.stats.totalMoneyEarned += 10;
+                this.stats.runMoneyEarned += 10; 
             }
         }
 
-        // LOOT & GLOBAL MAGNET
+        // Loot & Globaler Magnet
         for(let i=this.loot.length-1; i>=0; i--) {
             let l = this.loot[i];
             const dx = this.player.x - l.x;
             const dy = this.player.y - l.y;
             const dist = Math.hypot(dx, dy);
-
-            // protective guard: if dist is 0 treat as already collected or skip movement
-            if (dist === 0) {
-                // snap to player to avoid NaN / Infinity
-                l.x = this.player.x;
-                l.y = this.player.y;
-            } else {
-                // IMMER zum Spieler ziehen (Geschw. nimmt mit Distanz ab, max. 8px/frame)
-                const pullSpeed = Math.min(8, dist / 10); 
+            
+            // Pickup-Range kommt vom Spieler-Stat
+            const magnetRange = this.player.stats.pickupRange;
+            
+            if (dist < magnetRange) {
+                // Blut-Drops fliegen schneller (20), normales Loot mit 8
+                const pullSpeed = Math.min(l.isVampireDrop ? 20 : 8, dist / 10); 
+                
                 l.x += (dx / dist) * pullSpeed;
                 l.y += (dy / dist) * pullSpeed;
             }
             
             if(dist < 20) {
                 if(l.type === 'xp') {
-                    this.stats.xp += 10 * (this.player.stats.xpMult || 1);
+                    this.stats.xp += l.amount * (this.player.stats.xpMult || 1);
                     this.audio.playCollectXP();
-                } else {
-                    this.stats.money += 10 * (this.player.stats.moneyMult || 1);
+                } else if(l.type === 'money') {
+                    this.stats.money += l.amount * (this.player.stats.moneyMult || 1);
+                    this.stats.totalMoneyEarned += l.amount * (this.player.stats.moneyMult || 1); // Zähle gesamt verdientes Geld
                     this.audio.playCollectMoney();
+                } else if(l.type === 'hp') {
+                    this.heal(l.amount);
+                    this.audio.playCollectXP(); 
                 }
                 this.loot.splice(i, 1);
                 this.checkLevel();
-                continue;
             }
             
-            this.ctx.save();
             this.ctx.font = "20px Arial";
-            this.ctx.textAlign = "center";
-            this.ctx.textBaseline = "middle";
-            this.ctx.fillText(l.type==='xp'?'✨':'📀', l.x, l.y);
-            this.ctx.restore();
+            this.ctx.fillText(l.type==='xp'?'✨':(l.type==='money'?'📀':'❤️'), l.x, l.y);
         }
-
-        // PARTICLES (draw + decay)
-        for (let i = this.particles.length - 1; i >= 0; i--) {
-            const pt = this.particles[i];
-            pt.x += pt.vx;
-            pt.y += pt.vy;
-            pt.vy += 0.06; // gravity-ish
-            pt.age++;
-            pt.life--;
-
-            // fade-out
-            const alpha = Math.max(0, Math.min(1, pt.life / 30));
-
-            this.ctx.save();
-            this.ctx.globalAlpha = alpha;
-            this.ctx.font = "18px Arial";
-            this.ctx.textAlign = "center";
-            this.ctx.textBaseline = "middle";
-            this.ctx.fillText(pt.char, pt.x, pt.y);
-            this.ctx.restore();
-
-            if(pt.life <= 0) this.particles.splice(i, 1);
+        
+        // Partikel
+        for(let i=this.particles.length-1; i>=0; i--) {
+            let p = this.particles[i];
+            p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+            this.ctx.font = "12px Arial";
+            this.ctx.globalAlpha = p.life;
+            this.ctx.fillText(p.char, p.x, p.y);
+            if(p.life <= 0) this.particles.splice(i, 1);
         }
-
-        // DRAW REMAINING GAME OBJECTS (player + enemies)
+        this.ctx.globalAlpha = 1;
+        
         this.drawGameObjects();
         this.ui.update();
     }
@@ -333,15 +308,10 @@ class Game {
     drawGameObjects() {
         this.drawPlayer();
 
-        for (let i = 0; i < this.enemies.length; i++) {
-            const en = this.enemies[i];
-            this.ctx.save();
-            this.ctx.font = `${en.scale || 24}px Arial`;
-            this.ctx.textAlign = "center";
-            this.ctx.textBaseline = "middle";
-            this.ctx.fillText(en.emoji || '👾', en.x, en.y);
-            this.ctx.restore();
-        }
+        this.enemies.forEach(en => {
+            this.ctx.font = `${en.scale}px Arial`;
+            this.ctx.fillText(en.emoji, en.x, en.y);
+        });
     }
 
     drawPlayer() {
@@ -349,37 +319,33 @@ class Game {
         this.ctx.textAlign = "center";
         this.ctx.textBaseline = "middle";
 
-        const hpPerc = Math.max(0, Math.min(1, (p.hp / p.maxHp) || 0));
+        const hpPerc = p.hp / p.maxHp;
         
         if (p.x > 0 && p.y > 0) {
-            this.ctx.save();
             this.ctx.font = "40px Arial";
-            this.ctx.fillText("💾", p.x, p.y);
-            this.ctx.restore();
-
-            // Outline circle
+            this.ctx.fillText("💾", p.x, p.y); 
+            
+            // HP-Ring
             this.ctx.beginPath();
             this.ctx.arc(p.x, p.y, 30, 0, Math.PI * 2);
             this.ctx.strokeStyle = "rgba(255,0,0,0.3)";
             this.ctx.lineWidth = 4;
             this.ctx.stroke();
 
-            // HP arc
             this.ctx.beginPath();
             this.ctx.arc(p.x, p.y, 30, -Math.PI/2, (-Math.PI/2) + (Math.PI*2 * hpPerc));
             this.ctx.strokeStyle = `hsl(${hpPerc * 120}, 100%, 50%)`; 
-            this.ctx.lineWidth = 4;
             this.ctx.stroke();
         }
     }
 
     checkLevel() {
         if(this.stats.xp >= this.stats.xpToNext) {
-            this.stats.xp = 0;
-            this.stats.xpToNext *= 1.2;
+            this.stats.xp -= this.stats.xpToNext; 
+            this.stats.xpToNext = Math.floor(this.stats.xpToNext * 1.2);
             this.stats.level++;
+            this.heal(5); // Kleine Heilung beim Level-Up
             this.paused = true;
-            this.audio.stopBGM();
             this.audio.playLevelUp();
             this.showUpgradeMenu();
         }
@@ -387,7 +353,7 @@ class Game {
 
     showUpgradeMenu() {
         const modalBody = document.getElementById('modal-body');
-        document.getElementById('modal-title').innerText = "LEVEL UP!";
+        document.getElementById('modal-title').innerText = "LEVEL UP! Wähle ein Upgrade";
         document.getElementById('menu-overlay').classList.remove('hidden');
         modalBody.innerHTML = "";
 
@@ -410,7 +376,7 @@ class Game {
                 this.upgrades.apply(opt.id);
                 document.getElementById('menu-overlay').classList.add('hidden');
                 this.paused = false;
-                this.audio.playBGM();
+                this.ui.updateActiveUpgrades(); 
             };
             modalBody.appendChild(div);
         });
@@ -420,15 +386,14 @@ class Game {
         this.paused = state;
         const overlay = document.getElementById('menu-overlay');
         if(state) {
+            document.getElementById('modal-title').innerText = "PAUSE";
+            document.getElementById('modal-body').innerHTML = '<p>Klicke zum Fortsetzen auf das X oder außerhalb des Menüs.</p>';
             overlay.classList.remove('hidden');
-            this.audio.stopBGM();
         }
         else {
             overlay.classList.add('hidden');
-            this.audio.playBGM();
         }
     }
 }
 
 const game = new Game();
-
