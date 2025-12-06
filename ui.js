@@ -10,9 +10,9 @@ class UI {
         this.elVolumeSlider = document.getElementById('volume-slider');
         this.initVolumeControl();
 
-        this.elPlayerName = document.getElementById('player-name'); 
+        // ❌ ENTFERNT: this.elPlayerName = document.getElementById('player-name'); 
+        // Der Zugriff wird jetzt in showGameOver() durchgeführt.
 
-        // NEU: Lootbox Button Event Listener und SFX für alle Buttons
         this.elLootboxBtn = document.getElementById('btn-shop');
         this.elLootboxBtn.addEventListener('click', () => this.buyLootbox());
         
@@ -21,11 +21,14 @@ class UI {
             btn.addEventListener('click', () => this.game.audio.playClick());
         });
 
+        // NEU: Start-Button Logik hier binden, um sicherzustellen, dass das Spiel startet
+        document.getElementById('btn-start').addEventListener('click', () => {
+             // Der Klick-SFX wird bereits durch den .forEach oben behandelt.
+             this.game.startGame(); 
+        });
+
         // Discord Button Event 
         document.getElementById('btn-discord').addEventListener('click', () => this.sendToDiscord());
-        
-        // Der Start-Button muss hier einen Klick-Sound bekommen, da er keinen eigenen Logik-Handler hat.
-        document.getElementById('btn-start').addEventListener('click', () => this.game.audio.playClick());
     }
 
     initVolumeControl() {
@@ -58,44 +61,45 @@ class UI {
         document.getElementById('go-level').innerText = s.level;
         document.getElementById('go-money').innerText = Math.floor(s.money);
         
-        this.elPlayerName.value = localStorage.getItem('playerName') || ''; 
+        // NEU: Name Input Element wird hier abgerufen und initialisiert, wo es sichtbar ist.
+        const elPlayerName = document.getElementById('player-name'); 
+        elPlayerName.value = localStorage.getItem('playerName') || ''; 
         
         this.game.canvas.removeEventListener('mousedown', this.game.shootHandler); 
     }
 
-    /** NEU: Lootbox Kauf Logik */
     buyLootbox() {
         const cost = Math.floor(this.game.stats.lootboxCost);
         
         if (this.game.stats.money >= cost) {
             this.game.audio.playLootbox();
             this.game.stats.money -= cost;
-            this.game.stats.lootboxCost *= 1.5; // Erhöhe den Preis
+            this.game.stats.lootboxCost *= 1.5; 
 
-            // Belohnungs-Roll
             const roll = Math.random();
             if (roll < 0.7) {
-                // 70% Chance auf ein Upgrade (wird sofort angewendet)
                 const opts = this.game.upgrades.getOptions(1);
                 this.game.upgrades.apply(opts[0].id);
             } else if (roll < 0.95) {
-                // 25% Chance auf Geld-Bonus
                 const bonus = cost * (1 + Math.random());
                 this.game.stats.money += bonus;
             } else {
-                // 5% Chance auf Level-Up (sehr selten)
                 this.game.checkLevel();
             }
             
             this.update();
         } else {
-            // Visuelle Rückmeldung bei zu wenig Geld
             this.elLootboxBtn.classList.add('shake');
             setTimeout(() => this.elLootboxBtn.classList.remove('shake'), 500);
         }
     }
 
     async sendToDiscord() {
-        // ... (Logik unverändert)
+        const btn = document.getElementById('btn-discord');
+        // NEU: Name Input Element wird hier abgerufen.
+        const playerName = document.getElementById('player-name').value.trim() || "ANONYM"; 
+        
+        localStorage.setItem('playerName', playerName); 
+        // ... (Rest der Funktion, unverändert)
     }
 }
