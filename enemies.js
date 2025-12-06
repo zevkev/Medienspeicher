@@ -1,18 +1,15 @@
 class EnemySystem {
     constructor(game) {
         this.game = game;
-        // Hinzugefügte neue Gegner und angepasste Skalierung
         this.definitions = [
-            { id: 'normal', emoji: '🪲', hp: 20, speed: 1.2, damage: 10, scale: 30, chance: 0.5 },
-            { id: 'fast', emoji: '🐞', hp: 8, speed: 3.0, damage: 5, scale: 25, chance: 0.2 },
-            { id: 'tank', emoji: '🪳', hp: 60, speed: 0.8, damage: 20, scale: 45, chance: 0.1 },
-            { id: 'corrupt', emoji: '🦠', hp: 10, speed: 1.5, damage: 15, scale: 30, chance: 0.1, loot: 'money' },
-            { id: 'swarm', emoji: '🐜', hp: 5, speed: 2.0, damage: 2, scale: 15, chance: 0.1, xp: 5 } // Schwarm gibt weniger XP
+            { id: 'normal', emoji: '🪲', hp: 20, speed: 1.2, damage: 10, scale: 30, chance: 0.6 },
+            { id: 'fast', emoji: '🐞', hp: 8, speed: 2.5, damage: 5, scale: 20, chance: 0.3 },
+            { id: 'tank', emoji: '🪳', hp: 60, speed: 0.6, damage: 20, scale: 45, chance: 0.1 }
         ];
     }
 
     spawn() {
-        const maxEnemies = 10 + this.game.stats.level * 2;
+        const maxEnemies = 5 + this.game.stats.level;
         if (this.game.enemies.length >= maxEnemies) return;
 
         const rand = Math.random();
@@ -25,23 +22,19 @@ class EnemySystem {
         }
 
         let x, y;
-        const spawnDistance = 100;
-        // Spawn außerhalb des Sichtfelds
         if(Math.random() > 0.5) {
-            x = Math.random() > 0.5 ? -spawnDistance : this.game.canvas.width + spawnDistance;
+            x = Math.random() > 0.5 ? -50 : this.game.canvas.width + 50;
             y = Math.random() * this.game.canvas.height;
         } else {
             x = Math.random() * this.game.canvas.width;
-            y = Math.random() > 0.5 ? -spawnDistance : this.game.canvas.height + spawnDistance;
+            y = Math.random() > 0.5 ? -50 : this.game.canvas.height + 50;
         }
 
-        const hpMultiplier = 1 + this.game.stats.level * 0.3;
-        
         this.game.enemies.push({
             ...selectedType,
             x: x, y: y,
-            maxHp: selectedType.hp * hpMultiplier, 
-            currentHp: selectedType.hp * hpMultiplier
+            maxHp: selectedType.hp * (1 + this.game.stats.level * 0.3), 
+            currentHp: selectedType.hp * (1 + this.game.stats.level * 0.3)
         });
     }
 
@@ -55,20 +48,11 @@ class EnemySystem {
             const dy = p.y - en.y;
             const dist = Math.hypot(dx, dy);
             
-            // Bewegung des Gegners zum Spieler
             en.x += (dx / dist) * en.speed;
             en.y += (dy / dist) * en.speed;
 
-            // Kollision mit dem Spieler
-            if(dist < en.scale / 2 + 10) { 
+            if(dist < en.scale + 15) {
                 this.game.takeDamage(en.damage);
-                
-                // Knockback-Effekt auf den Gegner
-                if (p.stats.knockback > 0) {
-                    en.x += (dx / dist) * p.stats.knockback * 1.5;
-                    en.y += (dy / dist) * p.stats.knockback * 1.5;
-                    continue; 
-                }
                 
                 this.game.enemies.splice(i, 1);
             }
