@@ -3,12 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Floppy Survivor V2</title>
+    <title>Floppy Defender</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div id="ui-layer">
+    <div id="start-overlay">
+        <div class="glass-modal">
+            <h1>💾 FLOPPY DEFENDER 💾</h1>
+            <h2>Verteidige deinen Speicher!</h2>
+            <p>
+                Bugs 🐛 greifen deine zentrale Speichereinheit (💾) an. 
+                Klicke oder tippe auf den Bildschirm, um **💿 CDs** abzuschießen und die Eindringlinge zu zerstören.
+            </p>
+            <p>Sammle ✨ XP und 📀 Geld, um mächtiger zu werden!</p>
+            <button id="btn-start">SPIEL STARTEN</button>
+        </div>
+    </div>
+
+    <div id="ui-layer" class="hidden"> 
         <div class="glass-panel" id="settings-panel">
             <button id="btn-mute">🔊 Sound</button>
         </div>
@@ -29,8 +42,8 @@
 
     <div id="game-over-overlay" class="hidden">
         <div class="glass-modal">
-            <h1>💀 GAME OVER 💀</h1>
-            <p>Du hast tapfer gekämpft!</p>
+            <h1>💀 LÖSCHFEHLER 💀</h1>
+            <p>Deine Daten sind korruptiert!</p>
             <div class="stats-grid">
                 <div>Level: <span id="go-level">0</span></div>
                 <div>Geld: <span id="go-money">0</span></div>
@@ -38,7 +51,7 @@
             <br>
             <button id="btn-discord" class="discord-btn">🏆 Score an Discord senden</button>
             <br><br>
-            <button onclick="location.reload()">Neustart</button>
+            <button onclick="window.location.reload()">NEUSTART</button>
         </div>
     </div>
 
