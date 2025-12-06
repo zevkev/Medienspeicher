@@ -17,37 +17,23 @@ class Game {
         this.paused = true; 
         this.gameOver = false;
         
-        // NEUE STATS: runCount, runMoneyEarned
-        this.stats = { level: 1, xp: 0, xpToNext: 100, money: 0, lootboxCost: 100, totalMoneyEarned: 0, runCount: 0, runMoneyEarned: 0 };
+        this.stats = { level: 1, xp: 0, xpToNext: 100, money: 0, lootboxCost: 100, totalMoneyEarned: 0 };
         
         this.player = {
             x: -100, 
             y: -100,
             hp: 100, maxHp: 100,
-            // Basis-Stats mit neuen Upgrades
             stats: { 
-                baseDamage: 20, 
-                damageMult: 1, 
-                fireRate: 600, // Cooldown in ms
-                projSpeed: 8, 
-                projLife: 60, // Basislife (Frames)
-                xpMult: 1, 
-                moneyMult: 1, 
-                // pickupRange: 100, // <--- ENTFERNT
-                regen: 0, 
-                splashChance: 0,
-                critChance: 0, 
-                critDmg: 0.5, 
-                knockback: 0, 
-                pierce: 0,
-                lifesteal: 0 
+                damageMult: 1, fireRate: 600, projSpeed: 8, 
+                xpMult: 1, moneyMult: 1, pickupRange: 10000, regen: 0, splash: 0,
+                pierceCount: 0 // Neu: Für das Durchschuss-Upgrade
             },
             lastShot: 0
         };
 
         this.enemies = [];
         this.projectiles = [];
-        this.loot = []; 
+        this.loot = [];
         this.particles = [];
         this.explosions = [];
 
@@ -57,12 +43,26 @@ class Game {
         this.bindEvents();
         document.getElementById('btn-start').addEventListener('click', () => this.startGame());
 
+        this.applyInitialUpgrades(); 
+
         this.loop(0);
     }
     
     bindEvents() {
         this.shootHandler = (e) => this.inputShoot(e);
         canvas.addEventListener('mousedown', this.shootHandler);
+    }
+
+    applyInitialUpgrades() {
+        const loadedData = this.saveData.loadPersistentData();
+        
+        loadedData.upgrades.forEach(up => {
+            for(let i = 0; i < up.level; i++) {
+                this.upgrades.apply(up.id, true);
+            }
+        });
+        
+        this.stats.totalMoneyEarned = loadedData.totalMoneyEarned; 
     }
 
     startGame() {
@@ -75,6 +75,7 @@ class Game {
         this.player.y = canvas.height / 2;
         
         this.paused = false;
+        this.audio.playBGM(); 
         
         this.spawnInterval = setInterval(() => { if(!this.paused && !this.gameOver) this.enemySystem.spawn(); }, 1000);
         this.regenInterval = setInterval(() => { 
@@ -83,8 +84,6 @@ class Game {
                 if(this.player.hp > this.player.maxHp) this.player.hp = this.player.maxHp;
             }
         }, 1000);
-        
-        this.ui.updateActiveUpgrades(); 
     }
 
     takeDamage(amount) {
@@ -97,15 +96,11 @@ class Game {
         if(this.player.hp <= 0) {
             this.player.hp = 0;
             this.gameOver = true;
+            this.audio.stopBGM(); 
             clearInterval(this.spawnInterval); 
             clearInterval(this.regenInterval);
             this.ui.showGameOver(); 
         }
-    }
-    
-    heal(amount) {
-        this.player.hp += amount;
-        if(this.player.hp > this.player.maxHp) this.player.hp = this.player.maxHp;
     }
 
     inputShoot(e) {
@@ -114,33 +109,24 @@ class Game {
         
         this.player.lastShot = Date.now();
         const rect = canvas.getBoundingClientRect();
-        
         this.shootProjectile(this.player.x, this.player.y, e.clientX - rect.left, e.clientY - rect.top);
     }
 
     shootProjectile(sx, sy, tx, ty, damageOverride = null) {
         const angle = Math.atan2(ty - sy, tx - sx);
-        
-        // Kritischer Treffer-Check
-        let crit = false;
-        let finalDmg = this.player.stats.baseDamage * (this.player.stats.damageMult || 1);
-        if (Math.random() < this.player.stats.critChance) {
-            finalDmg *= (1 + (this.player.stats.critDmg || 0.5));
-            crit = true;
-        }
-        
-        const dmg = damageOverride || finalDmg;
+        const dmg = damageOverride || (20 * (this.player.stats.damageMult || 1));
         
         this.projectiles.push({
             x: sx, y: sy,
-            vx: Math.cos(angle) * this.player.stats.projSpeed,
-            vy: Math.sin(angle) * this.player.stats.projSpeed,
+            vx: Math.cos(angle) * (this.player.stats.projSpeed || 8),
+            vy: Math.sin(angle) * (this.player.stats.projSpeed || 8),
             damage: dmg,
-            life: this.player.stats.projLife, // Reichweite (Frames)
+            // Entfernt: life: (this.player.stats.projLife || 60), (Unendliche Reichweite)
             size: (this.player.stats.projSize || 0),
-            crit: crit,
-            pierceLeft: this.player.stats.pierce || 0, // NEU: Durchschlag
-            enemiesHit: new Set() // NEU: Verhindert Mehrfachschaden pro Schuss bei Piercing
+            
+            // Neu: Piercing Logik
+            hits: 0,
+            maxHits: 1 + (this.player.stats.pierceCount || 0) 
         });
         this.audio.playShoot();
     }
@@ -152,7 +138,7 @@ class Game {
         this.enemies.forEach(en => {
             if(Math.hypot(en.x - x, en.y - y) < radius) {
                 en.currentHp -= damage;
-                this.createParticle(en.x, en.y, '💥');
+                this.createParticle(en.x, en.y, '💥'); // Emoji-Polish
             }
         });
     }
@@ -165,9 +151,11 @@ class Game {
         requestAnimationFrame((t) => this.loop(t));
         
         if(this.paused || this.gameOver) {
-            if (!document.getElementById('start-overlay').classList.contains('hidden') || this.gameOver || this.paused) {
+            if (this.gameOver || document.getElementById('start-overlay').classList.contains('hidden')) {
                 this.ctx.clearRect(0, 0, canvas.width, canvas.height);
-                this.drawPlayer();
+                if (!document.getElementById('start-overlay').classList.contains('hidden') || this.gameOver) {
+                    this.drawPlayer();
+                }
             }
             return;
         }
@@ -177,49 +165,40 @@ class Game {
         this.upgrades.update(timestamp);
         this.enemySystem.update();
         
-        // Projektile Update
         for(let i=this.projectiles.length-1; i>=0; i--) {
             let p = this.projectiles[i];
-            p.x += p.vx; p.y += p.vy; p.life--;
+            p.x += p.vx; p.y += p.vy; 
             
-            this.ctx.font = `${20 + p.size}px Arial`;
-            this.ctx.fillStyle = p.crit ? 'yellow' : 'white';
-            this.ctx.fillText('💿', p.x, p.y);
+            // Cleanup far-off projectiles (für unendliche Reichweite)
+            if(p.x < -100 || p.x > canvas.width + 100 || p.y < -100 || p.y > canvas.height + 100) {
+                this.projectiles.splice(i, 1);
+                continue;
+            }
 
-            let destroyed = false;
+            this.ctx.font = `${20 + p.size}px Arial`;
+            this.ctx.fillText('💿', p.x, p.y); // CD Emoji Polish
+
+            let removed = false;
             
-            // Reichweite
-            if(p.life <= 0) destroyed = true;
-            
-            // Kollisionscheck
             for(let en of this.enemies) {
-                // Nur prüfen, wenn der Gegner noch nicht von diesem Projektil getroffen wurde
-                if(!p.enemiesHit.has(en) && Math.hypot(p.x - en.x, p.y - en.y) < en.scale / 2) {
-                    
+                if(Math.hypot(p.x - en.x, p.y - en.y) < en.scale) {
                     en.currentHp -= p.damage;
-                    this.createParticle(p.x, p.y, p.crit ? '💥' : '✨');
+                    this.createParticle(p.x, p.y, '💥'); // Emoji-Polish
                     this.audio.playHit();
                     
-                    // Splash Check (mit Wahrscheinlichkeit)
-                    if(Math.random() < this.player.stats.splashChance) {
-                        this.createExplosion(p.x, p.y, 50, p.damage/2);
-                    }
+                    p.hits++; // Treffer zählen
                     
-                    // Piercing/Durchschlag
-                    if(p.pierceLeft > 0) {
-                        p.pierceLeft--;
-                        p.enemiesHit.add(en);
-                    } else {
-                        destroyed = true;
+                    if(this.player.stats.splash) this.createExplosion(p.x, p.y, 50, p.damage/2);
+                    
+                    if(p.hits >= p.maxHits) { // Entfernen, wenn max. Treffer erreicht sind (Durchschuss-Logik)
+                        removed = true;
+                        break;
                     }
-                    break;
                 }
             }
-            
-            if(destroyed) this.projectiles.splice(i, 1);
+            if(removed) this.projectiles.splice(i, 1);
         }
 
-        // Explosionen Update
         for(let i=this.explosions.length-1; i>=0; i--) {
             let ex = this.explosions[i];
             ex.r += 5; ex.alpha -= 0.05;
@@ -230,72 +209,44 @@ class Game {
             if(ex.alpha <= 0) this.explosions.splice(i, 1);
         }
 
-        // Gegner töten & Loot droppen
         for(let i=this.enemies.length-1; i>=0; i--) {
             if(this.enemies[i].currentHp <= 0) {
                 const en = this.enemies[i];
-                
-                const xpAmount = en.xp || 10;
-                this.loot.push({x:en.x, y:en.y, type:'xp', amount: xpAmount});
-                
-                if(Math.random() > 0.7 || en.loot === 'money') {
-                    this.loot.push({x:en.x+10, y:en.y, type:'money', amount: 10});
-                }
-                
-                // Lifesteal/Vampir-HP-Drop (Blut-Drop)
-                if(this.player.stats.lifesteal && Math.random() < this.player.stats.lifesteal) {
-                    this.loot.push({x:en.x-10, y:en.y, type:'hp', amount: 10, isVampireDrop: true}); // isVampireDrop für schnellen Magnet
-                }
-                
+                this.loot.push({x:en.x, y:en.y, type:'xp'});
+                if(Math.random() > 0.7) this.loot.push({x:en.x+10, y:en.y, type:'money'});
                 this.enemies.splice(i, 1);
-                this.stats.runMoneyEarned += 10; 
+                this.stats.totalMoneyEarned += 10;
             }
         }
 
-        // Loot & Globaler Magnet (ANGEPASST)
+        // Loot & GLOBAL MAGNET
         for(let i=this.loot.length-1; i>=0; i--) {
             let l = this.loot[i];
             const dx = this.player.x - l.x;
             const dy = this.player.y - l.y;
             const dist = Math.hypot(dx, dy);
             
-            // Loot zieht IMMER zum Spieler, wie gewünscht
-            // Blut-Drops fliegen schneller (20), normales Loot mit 8
-            const pullSpeed = Math.min(l.isVampireDrop ? 20 : 8, dist / 10); 
+            // IMMER zum Spieler ziehen (Geschw. nimmt mit Distanz ab, max. 8px/frame)
+            const pullSpeed = Math.min(8, dist / 10); 
             
             l.x += (dx / dist) * pullSpeed;
             l.y += (dy / dist) * pullSpeed;
             
             if(dist < 20) {
                 if(l.type === 'xp') {
-                    this.stats.xp += l.amount * (this.player.stats.xpMult || 1);
+                    this.stats.xp += 10 * (this.player.stats.xpMult || 1);
                     this.audio.playCollectXP();
-                } else if(l.type === 'money') {
-                    this.stats.money += l.amount * (this.player.stats.moneyMult || 1);
-                    this.stats.totalMoneyEarned += l.amount * (this.player.stats.moneyMult || 1); // Zähle gesamt verdientes Geld
+                } else {
+                    this.stats.money += 10 * (this.player.stats.moneyMult || 1);
                     this.audio.playCollectMoney();
-                } else if(l.type === 'hp') {
-                    this.heal(l.amount);
-                    this.audio.playCollectXP(); 
                 }
                 this.loot.splice(i, 1);
                 this.checkLevel();
             }
             
             this.ctx.font = "20px Arial";
-            this.ctx.fillText(l.type==='xp'?'✨':(l.type==='money'?'📀':'❤️'), l.x, l.y);
+            this.ctx.fillText(l.type==='xp'?'✨':'📀', l.x, l.y); // Emoji-Polish
         }
-        
-        // Partikel
-        for(let i=this.particles.length-1; i>=0; i--) {
-            let p = this.particles[i];
-            p.x += p.vx; p.y += p.vy; p.life -= 0.05;
-            this.ctx.font = "12px Arial";
-            this.ctx.globalAlpha = p.life;
-            this.ctx.fillText(p.char, p.x, p.y);
-            if(p.life <= 0) this.particles.splice(i, 1);
-        }
-        this.ctx.globalAlpha = 1;
         
         this.drawGameObjects();
         this.ui.update();
@@ -308,6 +259,8 @@ class Game {
             this.ctx.font = `${en.scale}px Arial`;
             this.ctx.fillText(en.emoji, en.x, en.y);
         });
+        
+        this.drawActiveUpgrades(); // NEU: HUD für aktive Upgrades
     }
 
     drawPlayer() {
@@ -319,9 +272,8 @@ class Game {
         
         if (p.x > 0 && p.y > 0) {
             this.ctx.font = "40px Arial";
-            this.ctx.fillText("💾", p.x, p.y); 
-            
-            // HP-Ring
+            this.ctx.fillText("💾", p.x, p.y); // Disketten Emoji Polish
+
             this.ctx.beginPath();
             this.ctx.arc(p.x, p.y, 30, 0, Math.PI * 2);
             this.ctx.strokeStyle = "rgba(255,0,0,0.3)";
@@ -334,14 +286,41 @@ class Game {
             this.ctx.stroke();
         }
     }
+    
+    // NEU: HUD für aktive Upgrades
+    drawActiveUpgrades() {
+        const u = this.upgrades.activeUpgrades;
+        const iconSize = 28;
+        const totalWidth = u.length * iconSize * 1.5;
+        const startX = canvas.width / 2 - (totalWidth / 2); // Zentrieren
+        const startY = canvas.height - 40; 
+        
+        this.ctx.textAlign = "center";
+        this.ctx.textBaseline = "middle";
+        
+        u.forEach((up, index) => {
+            const x = startX + (index * iconSize * 1.5);
+            const y = startY;
+            
+            // Upgrade-Emoji
+            this.ctx.font = `${iconSize}px Arial`;
+            this.ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+            this.ctx.fillText(up.emoji, x, y);
+            
+            // Level
+            this.ctx.font = "12px Arial";
+            this.ctx.fillStyle = "white";
+            this.ctx.fillText(`L${up.level}`, x, y + iconSize / 2 + 5);
+        });
+    }
 
     checkLevel() {
         if(this.stats.xp >= this.stats.xpToNext) {
-            this.stats.xp -= this.stats.xpToNext; 
-            this.stats.xpToNext = Math.floor(this.stats.xpToNext * 1.2);
+            this.stats.xp = 0;
+            this.stats.xpToNext *= 1.2;
             this.stats.level++;
-            this.heal(5); // Kleine Heilung beim Level-Up
             this.paused = true;
+            this.audio.stopBGM();
             this.audio.playLevelUp();
             this.showUpgradeMenu();
         }
@@ -349,7 +328,7 @@ class Game {
 
     showUpgradeMenu() {
         const modalBody = document.getElementById('modal-body');
-        document.getElementById('modal-title').innerText = "LEVEL UP! Wähle ein Upgrade";
+        document.getElementById('modal-title').innerText = "LEVEL UP!";
         document.getElementById('menu-overlay').classList.remove('hidden');
         modalBody.innerHTML = "";
 
@@ -372,7 +351,7 @@ class Game {
                 this.upgrades.apply(opt.id);
                 document.getElementById('menu-overlay').classList.add('hidden');
                 this.paused = false;
-                this.ui.updateActiveUpgrades(); 
+                this.audio.playBGM();
             };
             modalBody.appendChild(div);
         });
@@ -382,12 +361,12 @@ class Game {
         this.paused = state;
         const overlay = document.getElementById('menu-overlay');
         if(state) {
-            document.getElementById('modal-title').innerText = "PAUSE";
-            document.getElementById('modal-body').innerHTML = '<p>Klicke zum Fortsetzen auf das X oder außerhalb des Menüs.</p>';
             overlay.classList.remove('hidden');
+            this.audio.stopBGM();
         }
         else {
             overlay.classList.add('hidden');
+            this.audio.playBGM();
         }
     }
 }
