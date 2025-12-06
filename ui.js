@@ -7,14 +7,25 @@ class UI {
         this.elXpText = document.getElementById('xp-text');
         this.elShopCost = document.getElementById('lootbox-cost');
         
-        // Settings
-        document.getElementById('btn-mute').addEventListener('click', (e) => {
-            let m = this.game.audio.toggleMute();
-            e.target.innerText = m ? "🔇 Sound aus" : "🔊 Sound an";
-        });
+        // NEU: Lautstärke-Slider
+        this.elVolumeSlider = document.getElementById('volume-slider');
+        this.initVolumeControl();
 
-        // Discord Button Event (muss auf dem Game Over Screen liegen)
+        // Discord Button Event
         document.getElementById('btn-discord').addEventListener('click', () => this.sendToDiscord());
+    }
+
+    initVolumeControl() {
+        // Initialen Wert aus localStorage laden (Standard 50, wenn nicht vorhanden)
+        const savedVolume = localStorage.getItem('gameVolume') || 50;
+        this.elVolumeSlider.value = savedVolume;
+        this.game.audio.setVolume(parseInt(savedVolume));
+
+        // Event Listener für den Slider
+        this.elVolumeSlider.addEventListener('input', (e) => {
+            const level = parseInt(e.target.value);
+            this.game.audio.setVolume(level);
+        });
     }
 
     update() {
@@ -23,7 +34,7 @@ class UI {
         this.elMoney.innerText = `📀 ${Math.floor(s.money)}`;
         this.elShopCost.innerText = Math.floor(s.lootboxCost);
 
-        // XP Bar Fix
+        // XP Bar
         let perc = (s.xp / s.xpToNext) * 100;
         if(perc > 100) perc = 100;
         this.elXpFill.style.width = `${perc}%`;
@@ -33,11 +44,10 @@ class UI {
     showGameOver() {
         const s = this.game.stats;
         document.getElementById('game-over-overlay').classList.remove('hidden');
-        document.getElementById('ui-layer').classList.add('hidden'); // Haupt-UI ausblenden
+        document.getElementById('ui-layer').classList.add('hidden'); 
         document.getElementById('go-level').innerText = s.level;
         document.getElementById('go-money').innerText = Math.floor(s.money);
         
-        // Deaktiviere den Schuss-Event-Handler im game.js, um das Schießen zu verhindern
         this.game.canvas.removeEventListener('mousedown', this.game.shootHandler); 
     }
 
@@ -45,9 +55,10 @@ class UI {
         const btn = document.getElementById('btn-discord');
         btn.innerText = "Sende...";
         
+        this.game.saveData.savePersistentData(); 
+        
         const s = this.game.stats;
         
-        // Liste der Upgrades im schönen Format
         const upgradeList = this.game.upgrades.activeUpgrades
             .map(u => `${u.emoji} ${u.name} (Lvl ${u.level})`)
             .join('\n') || "Keine Upgrades";
@@ -60,11 +71,11 @@ class UI {
             embeds: [
                 {
                     title: "💾 Neuer Highscore: Daten korrumpiert!",
-                    color: 10181046, // Lila
+                    color: 10181046, 
                     fields: [
                         { name: "Level erreicht", value: s.level.toString(), inline: true },
                         { name: "Gesammeltes Geld", value: `📀 ${Math.floor(s.money)}`, inline: true },
-                        { name: "---", value: "\u200b", inline: false }, // Separator
+                        { name: "---", value: "\u200b", inline: false }, 
                         { name: "Erworbene Upgrades", value: upgradeList }
                     ],
                     footer: { text: `Datum: ${new Date().toLocaleDateString('de-DE')} | Floppy Defender` },
@@ -79,7 +90,7 @@ class UI {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            btn.innerText = "✅ Gesendet!";
+            btn.innerText = "✅ Gesendet! (Neu laden)";
             btn.disabled = true;
         } catch(e) {
             btn.innerText = "❌ Fehler beim Senden";
