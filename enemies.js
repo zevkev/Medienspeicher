@@ -9,11 +9,9 @@ class EnemySystem {
     }
 
     spawn() {
-        // CAP SYSTEM: Level 1 = 5 Bugs, Level 2 = 6 Bugs, etc.
         const maxEnemies = 5 + this.game.stats.level;
         if (this.game.enemies.length >= maxEnemies) return;
 
-        // Typ Auswahl
         const rand = Math.random();
         let selectedType = this.definitions[0];
         let cumChance = 0;
@@ -23,7 +21,6 @@ class EnemySystem {
             if(rand < cumChance) { selectedType = def; break; }
         }
 
-        // Position (Rand des Screens)
         let x, y;
         if(Math.random() > 0.5) {
             x = Math.random() > 0.5 ? -50 : this.game.canvas.width + 50;
@@ -36,7 +33,7 @@ class EnemySystem {
         this.game.enemies.push({
             ...selectedType,
             x: x, y: y,
-            maxHp: selectedType.hp * (1 + this.game.stats.level * 0.3), // HP Skalierung
+            maxHp: selectedType.hp * (1 + this.game.stats.level * 0.3), 
             currentHp: selectedType.hp * (1 + this.game.stats.level * 0.3)
         });
     }
@@ -47,7 +44,6 @@ class EnemySystem {
         for (let i = this.game.enemies.length - 1; i >= 0; i--) {
             let en = this.game.enemies[i];
             
-            // Bewegung
             const dx = p.x - en.x;
             const dy = p.y - en.y;
             const dist = Math.hypot(dx, dy);
@@ -55,11 +51,9 @@ class EnemySystem {
             en.x += (dx / dist) * en.speed;
             en.y += (dy / dist) * en.speed;
 
-            // Collision mit Player
             if(dist < en.scale + 15) {
                 this.game.takeDamage(en.damage);
                 
-                // BUG DESPAWN NACH TREFFER
                 this.game.enemies.splice(i, 1);
             }
         }
