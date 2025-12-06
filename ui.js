@@ -5,6 +5,8 @@ class UI {
         this.elMoney = document.getElementById('money-display');
         this.elXpFill = document.getElementById('xp-bar-fill');
         this.elXpText = document.getElementById('xp-text');
+        this.elHpFill = document.getElementById('hp-bar-fill');
+        this.elHpText = document.getElementById('hp-text');
         this.elShopCost = document.getElementById('lootbox-cost');
         
         this.elVolumeSlider = document.getElementById('volume-slider');
@@ -33,87 +35,62 @@ class UI {
         this.game.audio.setVolume(parseInt(savedVolume));
 
         this.elVolumeSlider.addEventListener('input', (e) => {
-            const level = parseInt(e.target.value);
-            this.game.audio.setVolume(level);
+            this.game.audio.setVolume(e.target.value);
         });
     }
 
-    update() {
+    updateHUD() {
         const s = this.game.stats;
+        const p = this.game.player;
+        const hpPercent = p.hp / p.maxHp;
+        const xpPercent = s.xp / s.xpToNext;
+
+        // Level und XP
         this.elLevel.innerText = `LEVEL ${s.level}`;
+        this.elXpFill.style.width = `${xpPercent * 100}%`;
+        this.elXpText.innerText = `${Math.floor(s.xp)} / ${Math.floor(s.xpToNext)}`;
+
+        // HP (NEU)
+        this.elHpFill.style.width = `${Math.max(0, hpPercent) * 100}%`;
+        this.elHpText.innerText = `${Math.max(0, Math.floor(p.hp))} / ${Math.floor(p.maxHp)} ${p.stats.shieldActive ? '🛡️' : ''}`;
+
+        // Geld und Shop
         this.elMoney.innerText = `📀 ${Math.floor(s.money)}`;
         this.elShopCost.innerText = Math.floor(s.lootboxCost);
 
-        let perc = (s.xp / s.xpToNext) * 100;
-        if(perc > 100) perc = 100;
-        this.elXpFill.style.width = `${perc}%`;
-        this.elXpText.innerText = `${Math.floor(s.xp)} / ${Math.floor(s.xpToNext)} XP`;
+        // Lootbox Button Zustand
+        this.elLootboxBtn.disabled = s.money < s.lootboxCost || this.game.lootBoxAnimation.isRunning;
+        this.elLootboxBtn.style.opacity = this.elLootboxBtn.disabled ? 0.5 : 1;
     }
 
-    /** Wird aufgerufen, wenn das Spiel endet. */
-    showGameOver() {
-        const s = this.game.stats;
-        document.getElementById('game-over-overlay').classList.remove('hidden');
-        document.getElementById('ui-layer').classList.add('hidden'); 
-        document.getElementById('go-level').innerText = s.level;
-        document.getElementById('go-money').innerText = Math.floor(s.money);
-        
-        // 🟢 FIX: Name Input Element wird erst hier abgerufen, wenn das Overlay sichtbar wird.
-        const elPlayerName = document.getElementById('player-name'); 
-        if (elPlayerName) {
-            elPlayerName.value = localStorage.getItem('playerName') || ''; 
-        }
-        
-        this.game.canvas.removeEventListener('mousedown', this.game.shootHandler); 
-    }
-
-    /** Lootbox Kauf Logik */
     buyLootbox() {
-        const cost = Math.floor(this.game.stats.lootboxCost);
-        
-        if (this.game.stats.money >= cost) {
-            this.game.audio.playLootbox();
-            this.game.stats.money -= cost;
-            this.game.stats.lootboxCost *= 1.5; // Erhöhe den Preis
-
-            // Belohnungs-Roll
-            const roll = Math.random();
-            if (roll < 0.7) {
-                // 70% Chance auf ein Upgrade (wird sofort angewendet)
-                const opts = this.game.upgrades.getOptions(1);
-                this.game.upgrades.apply(opts[0].id);
-            } else if (roll < 0.95) {
-                // 25% Chance auf Geld-Bonus
-                const bonus = cost * (1 + Math.random());
-                this.game.stats.money += bonus;
-            } else {
-                // 5% Chance auf Level-Up
-                this.game.checkLevel();
-            }
-            
-            this.update();
-        } else {
-            // Visuelle Rückmeldung bei zu wenig Geld
-            this.elLootboxBtn.classList.add('shake');
-            setTimeout(() => this.elLootboxBtn.classList.remove('shake'), 500);
+        if (this.game.stats.money >= this.game.stats.lootboxCost && !this.game.lootBoxAnimation.isRunning) {
+            this.game.stats.money -= this.game.stats.lootboxCost;
+            this.game.stats.lootboxCost *= 1.5; // Erhöht den Preis für die nächste Box
+            this.game.lootBoxAnimation.startAnimation();
+            this.updateHUD();
         }
     }
 
+    updateGameOverScreen() {
+        const s = this.game.stats;
+        document.getElementById('go-level').innerText = s.level;
+        document.getElementById('go-money').innerText = Math.floor(s.totalMoneyEarned);
+    }
+    
+    // Die Discord Webhook Funktion wurde beibehalten (bitte Webhook-URL anpassen)
     async sendToDiscord() {
         const btn = document.getElementById('btn-discord');
-        // Player Name abrufen (sicherstellen, dass es existiert, falls HTML fehlt)
-        const playerNameEl = document.getElementById('player-name');
-        const playerName = playerNameEl ? playerNameEl.value.trim() || "ANONYM" : "ANONYM"; 
-        
-        localStorage.setItem('playerName', playerName); 
-        
-        // Upgrades für Discord-Nachricht formatieren
-        const s = this.game.stats;
-        const upgradeList = this.game.upgrades.activeUpgrades.map(u => 
-            `${u.emoji} ${u.name} (Lv ${u.level})`
-        ).join('\\n') || 'Keine Upgrades gesammelt.';
+        btn.disabled = true;
 
-        // **WICHTIG**: Dies ist eine Beispiel-URL. Du musst deine eigene Webhook-URL hier einfügen.
+        const playerName = document.getElementById('player-name').value || 'Anonym';
+        const s = this.game.stats;
+        const upgradeList = this.game.upgrades.activeUpgrades
+            .filter(u => u.level > 0)
+            .map(u => `${u.emoji} ${u.name} (Lv ${u.level})`)
+            .join('\\n') || 'Keine Upgrades';
+
+        // ⚠️ BITTE DIESE WEBHOOK-URL MIT IHRER EIGENEN ERSETZEN! ⚠️
         const webhookURL = "https://discord.com/api/webhooks/1445472531413991580/DcsBOrTXpI8vjZFaWAM8jO9uitsn7ZzhrzsAskeWcaMypXM8U7Gjxgloe0gdhac7jV-9";
 
         const payload = {
@@ -121,12 +98,12 @@ class UI {
             avatar_url: "https://em-content.zobj.net/source/microsoft-teams/337/floppy-disk_1f4be.png",
             embeds: [
                 {
-                    title: `💾 Neuer Highscore von ${playerName}: Daten korrumpiert!`,
+                    title: `💾 Neuer Highscore von ${playerName}: Level ${s.level} erreicht!`,
                     color: 10181046, 
                     fields: [
                         { name: "Level erreicht", value: s.level.toString(), inline: true },
-                        { name: "Gesammeltes Geld", value: `📀 ${Math.floor(s.money)}`, inline: true },
-                        { name: "---\\u200b", value: "\\u200b", inline: false }, 
+                        { name: "Gesammeltes Geld", value: `📀 ${Math.floor(s.totalMoneyEarned)}`, inline: true },
+                        { name: "---\u200b", value: "\u200b", inline: false }, 
                         { name: "Erworbene Upgrades", value: upgradeList }
                     ],
                     footer: { text: `Datum: ${new Date().toLocaleDateString('de-DE')} | Floppy Defender` },
@@ -142,10 +119,9 @@ class UI {
                 body: JSON.stringify(payload)
             });
             btn.innerText = "GESENDET! 🎉";
-            btn.disabled = true;
-        } catch (e) {
-            console.error("Fehler beim Senden an Discord:", e);
-            btn.innerText = "FEHLER BEIM SENDEN ❌";
+        } catch (error) {
+            btn.innerText = "FEHLER! ❌";
+            console.error("Fehler beim Senden an Discord:", error);
         }
     }
 }
