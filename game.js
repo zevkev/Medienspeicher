@@ -194,6 +194,7 @@ class Game {
         this.audio = new SoundEngine(); 
         
         // Player, Systems, Data initialisieren
+        // HINWEIS: Player muss vor UI initialisiert werden, da UI die HP-Balken benötigt
         this.player = new Player(this); 
         this.enemySystem = new EnemySystem(this);
         this.upgrades = new UpgradeManager(this);
@@ -242,18 +243,30 @@ class Game {
         this.canvas.addEventListener('mouseup', e => this.input.mouseDown = false);
     }
     
+    // 💥 FIX: Stellt sicher, dass das Start-Overlay ausgeblendet und die UI eingeblendet wird.
     startGame() {
         // Zuerst Reset und Upgrades anwenden
         this.saveData.resetAndApplyUpgrades();
         this.ui.updateHUD(); 
         
+        // 1. Overlays verstecken/anzeigen
         document.getElementById('start-overlay').classList.add('hidden');
-        document.getElementById('ui-layer').classList.remove('hidden');
+        document.getElementById('game-over-overlay').classList.add('hidden');
+        document.getElementById('menu-overlay').classList.add('hidden'); // Falls versehentlich offen
+        document.getElementById('ui-layer').classList.remove('hidden'); // HUD anzeigen
         
+        // 2. Spieler zentrieren
         this.player.x = this.canvas.width / 2;
         this.player.y = this.canvas.height / 2;
         
+        // 3. Game State setzen
+        this.gameOver = false;
         this.paused = false;
+        
+        // 4. Reset Game Stats
+        this.enemies = [];
+        this.projectiles = [];
+        this.particles = [];
     }
     
     createExplosionParticles(x, y, color, count) {
@@ -300,10 +313,11 @@ class Game {
         const pStats = this.player.stats;
         switch (id) {
             case 'fireRate':
+                // Temporärer Multiplikator für Feuerrate
                 const originalFireRateMult = pStats.fireRateMult;
-                pStats.fireRateMult *= 2; // Verdoppelte Feuerrate
+                pStats.fireRateMult *= 2; 
                 setTimeout(() => {
-                    pStats.fireRateMult = originalFireRateMult;
+                    // Stellt den Wert über saveData-Reset wieder her, um Upgrade-Stacks zu berücksichtigen
                     this.saveData.resetAndApplyUpgrades(); 
                 }, 10000); 
                 break;
@@ -345,7 +359,8 @@ class Game {
 
         // 2. ENEMY SPAWN
         this.spawnTimer++;
-        if (this.spawnTimer >= this.spawnInterval - (this.stats.level * 2)) {
+        const currentSpawnInterval = 120 - (this.stats.level * 2);
+        if (this.spawnTimer >= Math.max(30, currentSpawnInterval)) { // Minimale Spawnzeit 30 Frames
             this.enemySystem.spawn();
             this.spawnTimer = 0;
         }
@@ -381,16 +396,17 @@ class Game {
                         
                         this.particles.push(...this.createExplosionParticles(en.x, en.y, 'orange', 15));
                         
-                        if (Math.random() < 0.05) { // Geringe Chance auf Lootbox
-                            this.lootBoxAnimation.startAnimation();
-                        }
+                        // Lootbox nur über den Button kaufen, nicht als Drop
+                        // if (Math.random() < 0.05) { this.lootBoxAnimation.startAnimation(); }
                         
                         this.enemies.splice(j, 1);
                         
-                    } else if (proj.pierce <= proj.enemiesHit.length - 1) {
-                        // Projektil hat maximale Durchschlagskraft erreicht
+                    } 
+                    
+                    // Projektil verschwindet nur, wenn kein Durchschlag mehr übrig ist
+                    if (proj.pierce <= proj.enemiesHit.length - 1) {
                         this.projectiles.splice(i, 1); 
-                        i--; // Wichtig, da ein Element entfernt wurde
+                        i--; 
                         break;
                     }
                 }
@@ -454,11 +470,6 @@ class Game {
         
         // 7. UI updaten (HUD)
         this.ui.updateHUD(); 
-
-        // 8. Game Over Screen (wird nur angezeigt, wenn gameOver=true)
-        if (this.gameOver) {
-            // (Das Game Over Overlay in index.html ist für die Anzeige zuständig)
-        }
     }
     
     showUpgradeMenu() {
@@ -510,6 +521,9 @@ class Game {
 
     // Haupt-Game-Loop mit DeltaTime für flüssige Bewegung
     loop(currentTime) {
+        // Stellt sicher, dass currentTime beim ersten Aufruf existiert
+        if(this.lastTime === 0) this.lastTime = currentTime; 
+        
         const deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
         
