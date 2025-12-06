@@ -16,7 +16,7 @@ body, html {
     font-family: var(--font-main); color: white; user-select: none;
 }
 
-/* SHAKE ANIMATION */
+/* SHAKE ANIMATION */ 
 .shake {
     animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
 }
