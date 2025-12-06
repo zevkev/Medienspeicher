@@ -1,330 +1,428 @@
+// game.js
+
+// ----------------------------------------------------
+// I. HILFSKLASSEN: Player, Projectile, Particle
+// ----------------------------------------------------
+
+class Projectile {
+    constructor(x, y, radius, color, velocity, damageMult, pierceCount, critChance, critDamage) {
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.color = color;
+        this.velocity = velocity;
+        
+        this.isCritical = Math.random() < critChance;
+        this.damage = (10 * damageMult) * (this.isCritical ? (1 + critDamage) : 1); 
+        this.pierce = pierceCount; 
+        this.enemiesHit = [];
+    }
+
+    update() {
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+    }
+
+    draw(ctx) {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Kritischer Treffer Effekt (Polish)
+        if(this.isCritical) {
+            ctx.strokeStyle = '#ff00ea';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+    }
+}
+
+class Particle {
+    constructor(x, y, color, size, velocity) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.size = size;
+        this.velocity = velocity;
+        this.alpha = 1;
+        this.friction = 0.98; // Etwas mehr Reibung für schnelleren Stillstand
+    }
+
+    update() {
+        this.velocity.x *= this.friction;
+        this.velocity.y *= this.friction;
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+        this.alpha -= 0.03; 
+        this.size *= 0.98;
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        // Global Composite Operation für den Glüheffekt (Polish)
+        ctx.globalCompositeOperation = 'lighter'; 
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+class Player {
+    constructor(game) {
+        this.game = game;
+        this.x = game.canvas.width / 2;
+        this.y = game.canvas.height / 2;
+        this.radius = 25;
+        this.color = 'skyblue';
+        this.speed = 4; // Basis-Speed (wird durch Upgrades in saveData überschrieben)
+        this.hp = 100; 
+        this.maxHp = 100;
+        this.lastShot = 0;
+        
+        // Stat-Container (wird in saveData initialisiert/überschrieben)
+        this.stats = { 
+            damageMult: 1, fireRateMult: 1, projSpeed: 8, 
+            xpMult: 1, moneyMult: 1, pickupRange: 10000, regen: 0, splash: 0,
+            pierceCount: 0, critChance: 0, critDamage: 0, projRadius: 5,
+            // Temporäre Powerup-Zustände
+            doubleShotActive: false,
+            shieldActive: false,
+        };
+    }
+
+    update(keys) {
+        if (keys['w']) this.y = Math.max(this.radius, this.y - this.speed);
+        if (keys['s']) this.y = Math.min(this.game.canvas.height - this.radius, this.y + this.speed);
+        if (keys['a']) this.x = Math.max(this.radius, this.x - this.speed);
+        if (keys['d']) this.x = Math.min(this.game.canvas.width - this.radius, this.x + this.speed);
+    }
+    
+    shoot(mousePos) {
+        const now = Date.now();
+        // Berechnet effektive Feuerrate (Basis 600ms * Multiplikatoren)
+        const effectiveFireRate = 600 / this.stats.fireRateMult; 
+        
+        if (now - this.lastShot < effectiveFireRate) return;
+
+        this.lastShot = now;
+        this.game.audio.playShoot();
+
+        const angle = Math.atan2(mousePos.y - this.y, mousePos.x - this.x);
+        const velocity = { x: Math.cos(angle) * this.stats.projSpeed, y: Math.sin(angle) * this.stats.projSpeed };
+
+        const projParams = [
+            this.x, this.y, this.stats.projRadius, 'white', velocity, 
+            this.stats.damageMult, this.stats.pierceCount, this.stats.critChance, this.stats.critDamage
+        ];
+
+        // Standard Schuss
+        this.game.projectiles.push(new Projectile(...projParams));
+        
+        // Doppelschuss Powerup
+        if (this.stats.doubleShotActive) {
+            const angleOffset = Math.PI / 16;
+            const angle1 = angle - angleOffset;
+            const angle2 = angle + angleOffset;
+            
+            const v1 = { x: Math.cos(angle1) * this.stats.projSpeed, y: Math.sin(angle1) * this.stats.projSpeed };
+            const v2 = { x: Math.cos(angle2) * this.stats.projSpeed, y: Math.sin(angle2) * this.stats.projSpeed };
+
+            // Schüsse leicht abgewinkelt
+            this.game.projectiles.push(new Projectile(this.x, this.y, this.stats.projRadius, 'yellow', v1, this.stats.damageMult, this.stats.pierceCount, this.stats.critChance, this.stats.critDamage));
+            this.game.projectiles.push(new Projectile(this.x, this.y, this.stats.projRadius, 'yellow', v2, this.stats.damageMult, this.stats.pierceCount, this.stats.critChance, this.stats.critDamage));
+        }
+    }
+
+    draw(ctx) {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (this.stats.shieldActive) {
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 8, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    }
+}
+
+
+// ----------------------------------------------------
+// II. GAME-KLASSE (HAUPTLOGIK)
+// ----------------------------------------------------
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-window.addEventListener('resize', resize); resize();
+function resize() { 
+    if(canvas) {
+        canvas.width = window.innerWidth; 
+        canvas.height = window.innerHeight; 
+    }
+}
+window.addEventListener('resize', resize); 
+resize();
 
 class Game {
     constructor() {
         this.canvas = canvas;
         this.ctx = ctx;
         this.audio = new SoundEngine(); 
-        this.ui = new UI(this); // UI initialisiert sich hier und bindet den Start-Button
+        
+        // Player, Systems, Data initialisieren
+        this.player = new Player(this); 
         this.enemySystem = new EnemySystem(this);
         this.upgrades = new UpgradeManager(this);
         this.saveData = new SaveData(this); 
+        this.lootBoxAnimation = new LootBoxAnimation(this);
+        this.ui = new UI(this); // UI nach Player/Data initialisieren
 
         this.paused = true; 
         this.gameOver = false;
         
-        this.stats = { level: 1, xp: 0, xpToNext: 100, money: 0, lootboxCost: 100, totalMoneyEarned: 0 };
-        
-        this.player = {
-            x: -100, 
-            y: -100,
-            hp: 100, maxHp: 100,
-            stats: { 
-                damageMult: 1, fireRate: 600, projSpeed: 8, 
-                xpMult: 1, moneyMult: 1, pickupRange: 10000, regen: 0, splash: 0,
-                pierceCount: 0 
-            },
-            lastShot: 0
+        this.stats = { 
+            level: 1, xp: 0, xpToNext: 100, 
+            money: 0, lootboxCost: 100, totalMoneyEarned: 0,
         };
-
+        
         this.enemies = [];
         this.projectiles = [];
         this.loot = [];
         this.particles = [];
-        this.explosions = [];
-
-        document.getElementById('ui-layer').classList.add('hidden');
-        document.getElementById('game-over-overlay').classList.add('hidden');
+        this.input = { keys: {}, mousePos: { x: this.canvas.width / 2, y: this.canvas.height / 2 }, mouseDown: false };
+        this.lastTime = 0;
         
-        this.bindEvents();
-        // HINWEIS: Der Event Listener für btn-start wurde in UI.js verschoben, um Doppel-Bindung zu vermeiden.
-        // Falls Sie den alten Code aus der UI.js von vorhin hatten:
-        // document.getElementById('btn-start').addEventListener('click', () => this.startGame()); 
-
-        this.applyInitialUpgrades(); 
-
-        this.loop(0);
+        this.setupInput();
+        this.saveData.resetAndApplyUpgrades(); 
     }
     
-    bindEvents() {
-        this.shootHandler = (e) => this.inputShoot(e);
-        canvas.addEventListener('mousedown', this.shootHandler);
-    }
+    setupInput() {
+        document.addEventListener('keydown', e => this.input.keys[e.key.toLowerCase()] = true);
+        document.addEventListener('keyup', e => this.input.keys[e.key.toLowerCase()] = false);
 
-    applyInitialUpgrades() {
-        try {
-            const loadedData = this.saveData.loadPersistentData();
-            
-            loadedData.upgrades.forEach(up => {
-                if (UPGRADES_DB.find(u => u.id === up.id)) {
-                    for(let i = 0; i < up.level; i++) {
-                        this.upgrades.apply(up.id, true);
-                    }
-                }
-            });
-            
-            this.stats.totalMoneyEarned = loadedData.totalMoneyEarned; 
-        } catch (e) {
-            console.error("Fehler beim Anwenden der gespeicherten Upgrades. Die Spieldaten werden ignoriert.", e);
-        }
-    }
+        this.canvas.addEventListener('mousemove', e => {
+            const rect = this.canvas.getBoundingClientRect();
+            this.input.mousePos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        });
 
+        this.canvas.addEventListener('mousedown', e => this.input.mouseDown = true);
+        this.canvas.addEventListener('mouseup', e => this.input.mouseDown = false);
+    }
+    
     startGame() {
-        this.saveData.resetAndApplyUpgrades(); 
-        
-        // DIESE ZWEI ZEILEN SIND KRITISCH, damit das Spiel startet:
+        this.paused = false;
         document.getElementById('start-overlay').classList.add('hidden');
         document.getElementById('ui-layer').classList.remove('hidden');
+        requestAnimationFrame(this.loop.bind(this));
         
-        this.player.x = canvas.width / 2;
-        this.player.y = canvas.height / 2;
-        
-        this.paused = false;
-        
-        this.spawnInterval = setInterval(() => { if(!this.paused && !this.gameOver) this.enemySystem.spawn(); }, 1000);
-        this.regenInterval = setInterval(() => { 
-            if(!this.paused && !this.gameOver && this.player.hp < this.player.maxHp) {
-                this.player.hp += (this.player.stats.regen || 0);
-                if(this.player.hp > this.player.maxHp) this.player.hp = this.player.maxHp;
-            }
-        }, 1000);
+        this.player.x = this.canvas.width / 2;
+        this.player.y = this.canvas.height / 2;
+        this.ui.updateHUD();
     }
-
-    takeDamage(amount) {
-        this.player.hp -= amount;
+    
+    createExplosionParticles(x, y, color, count) {
+        const newParticles = [];
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const velocity = {
+                x: Math.cos(angle) * (Math.random() * 4 + 1),
+                y: Math.sin(angle) * (Math.random() * 4 + 1)
+            };
+            newParticles.push(new Particle(x, y, color, Math.random() * 2 + 0.5, velocity));
+        }
+        return newParticles;
+    }
+    
+    // NEU: Methode zur Schadensverarbeitung (mit Schild-Check und Polish)
+    takeDamage(damage) {
         this.audio.playDamage();
         
+        // Screen Shake Feedback (Polish)
         document.body.classList.add('shake');
         setTimeout(() => document.body.classList.remove('shake'), 500);
 
-        if(this.player.hp <= 0) {
-            this.player.hp = 0;
+        if (this.player.stats.shieldActive) {
+            this.player.stats.shieldActive = false;
+            this.ui.updateHUD();
+            return; 
+        }
+        
+        this.player.hp -= damage;
+        this.ui.updateHUD();
+        
+        this.particles.push(...this.createExplosionParticles(this.player.x, this.player.y, 'rgba(255, 0, 0, 0.8)', 15));
+        
+        if (this.player.hp <= 0) {
             this.gameOver = true;
-            clearInterval(this.spawnInterval); 
-            clearInterval(this.regenInterval);
-            this.ui.showGameOver(); 
+            this.paused = true;
+            document.getElementById('game-over-overlay').classList.remove('hidden');
+            this.saveData.savePersistentData();
+            this.ui.updateGameOverScreen();
         }
     }
-
-    inputShoot(e) {
-        if(this.paused || this.gameOver) return;
-        if(Date.now() - this.player.lastShot < this.player.stats.fireRate) return;
-        
-        this.player.lastShot = Date.now();
-        const rect = canvas.getBoundingClientRect();
-        this.shootProjectile(this.player.x, this.player.y, e.clientX - rect.left, e.clientY - rect.top);
+    
+    // NEU: Powerup-Anwendung der Lootbox
+    applyLootboxPowerUp(id) {
+        const pStats = this.player.stats;
+        switch (id) {
+            case 'fireRate':
+                // Temporär FireRate auf Basiswert setzen (schneller schießen)
+                const originalFireRateMult = pStats.fireRateMult;
+                pStats.fireRateMult *= 2; // Verdoppelte Feuerrate
+                setTimeout(() => {
+                    pStats.fireRateMult = originalFireRateMult;
+                    this.saveData.resetAndApplyUpgrades(); // Upgrades neu anwenden, um den originalen Multiplikator wiederherzustellen
+                }, 10000); 
+                break;
+            case 'doubleShot':
+                pStats.doubleShotActive = true;
+                setTimeout(() => pStats.doubleShotActive = false, 15000); 
+                break;
+            case 'shield':
+                pStats.shieldActive = true;
+                break;
+            case 'heal':
+                this.player.hp = Math.min(this.player.maxHp, this.player.hp + 25);
+                break;
+        }
+        this.ui.updateHUD();
     }
 
-    shootProjectile(sx, sy, tx, ty, damageOverride = null) {
-        const angle = Math.atan2(ty - sy, tx - sx);
-        const dmg = damageOverride || (20 * (this.player.stats.damageMult || 1));
-        
-        this.projectiles.push({
-            x: sx, y: sy,
-            vx: Math.cos(angle) * (this.player.stats.projSpeed || 8),
-            vy: Math.sin(angle) * (this.player.stats.projSpeed || 8),
-            damage: dmg,
-            size: (this.player.stats.projSize || 0),
-            
-            hits: 0,
-            maxHits: 1 + (this.player.stats.pierceCount || 0) 
-        });
-        this.audio.playShoot();
-    }
 
-    createExplosion(x, y, radius, damage) {
-        this.explosions.push({ x, y, r: 0, maxR: radius, alpha: 1 });
-        this.audio.playExplosion(); 
+    update(deltaTime) {
+        if (this.lootBoxAnimation.isRunning) {
+            this.lootBoxAnimation.update();
+        }
         
-        this.enemies.forEach(en => {
-            if(Math.hypot(en.x - x, en.y - y) < radius) {
-                en.currentHp -= damage;
-                this.createParticle(en.x, en.y, '💥');
-            }
-        });
-    }
-
-    createParticle(x, y, char) {
-        this.particles.push({x, y, vx:(Math.random()-0.5)*5, vy:(Math.random()-0.5)*5, char, life:1});
-    }
-
-    loop(timestamp) {
-        requestAnimationFrame((t) => this.loop(t));
+        if (this.paused || this.gameOver) return;
         
-        if(this.paused || this.gameOver) {
-            if (this.gameOver || document.getElementById('start-overlay').classList.contains('hidden')) {
-                this.ctx.clearRect(0, 0, canvas.width, canvas.height);
-                if (!document.getElementById('start-overlay').classList.contains('hidden') || this.gameOver) {
-                    this.drawPlayer();
-                }
-            }
-            return;
+        // 1. INPUT & PLAYER
+        this.player.update(this.input.keys);
+        if (this.input.mouseDown) {
+            this.player.shoot(this.input.mousePos);
         }
 
-        this.ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        this.upgrades.update(timestamp);
+        // 2. ENEMY SPAWN
+        this.enemySystem.spawnTimer++;
+        if (this.enemySystem.spawnTimer >= this.enemySystem.spawnInterval - (this.stats.level * 2)) {
+            this.enemySystem.spawn();
+            this.enemySystem.spawnTimer = 0;
+        }
+        
+        // 3. ENEMY UPDATE (Bewegung und Kollision mit Spieler)
         this.enemySystem.update();
         
-        for(let i=this.projectiles.length-1; i>=0; i--) {
-            let p = this.projectiles[i];
-            p.x += p.vx; p.y += p.vy; 
+        // 4. PROJECTILE UPDATE & COLLISION
+        for (let i = this.projectiles.length - 1; i >= 0; i--) {
+            const proj = this.projectiles[i];
+            proj.update();
             
-            if(p.x < -100 || p.x > canvas.width + 100 || p.y < -100 || p.y > canvas.height + 100) {
-                this.projectiles.splice(i, 1);
-                continue;
-            }
-
-            this.ctx.font = `${20 + p.size}px Arial`;
-            this.ctx.fillText('💿', p.x, p.y);
-
-            let removed = false;
+            let hit = false;
             
-            for(let en of this.enemies) {
-                if(Math.hypot(p.x - en.x, p.y - en.y) < en.scale) {
-                    en.currentHp -= p.damage;
-                    this.createParticle(p.x, p.y, '💥');
+            for (let j = this.enemies.length - 1; j >= 0; j--) {
+                const en = this.enemies[j];
+                const dist = Math.hypot(proj.x - en.x, proj.y - en.y);
+                
+                if (dist < proj.radius + en.radius) {
+                    if (proj.enemiesHit.includes(en)) continue; 
+
+                    en.currentHp -= proj.damage;
                     this.audio.playHit();
+                    proj.enemiesHit.push(en);
+                    hit = true;
                     
-                    p.hits++;
-                    
-                    if(this.player.stats.splash) this.createExplosion(p.x, p.y, 50, p.damage/2);
-                    
-                    if(p.hits >= p.maxHits) { 
-                        removed = true;
-                        break;
+                    if (en.currentHp <= 0) {
+                        this.stats.xp += 10 * this.player.stats.xpMult; 
+                        this.stats.money += 1 * this.player.stats.moneyMult; 
+                        this.stats.totalMoneyEarned += 1 * this.player.stats.moneyMult;
+                        this.audio.playCollectXP();
+                        this.audio.playCollectMoney();
+                        this.particles.push(
+                            ...this.createExplosionParticles(en.x, en.y, 'orange', 15)
+                        );
+                        
+                        if (Math.random() < 0.1) {
+                            this.lootBoxAnimation.startAnimation();
+                        }
+                        
+                        this.enemies.splice(j, 1);
+                        
+                    } else if (proj.pierce <= proj.enemiesHit.length - 1) {
+                        break; // Durchschlagskraft erschöpft
                     }
                 }
             }
-            if(removed) this.projectiles.splice(i, 1);
-        }
 
-        for(let i=this.explosions.length-1; i>=0; i--) {
-            let ex = this.explosions[i];
-            ex.r += 5; ex.alpha -= 0.05;
-            this.ctx.beginPath();
-            this.ctx.arc(ex.x, ex.y, ex.r, 0, Math.PI*2);
-            this.ctx.fillStyle = `rgba(255, 100, 0, ${ex.alpha})`;
-            this.ctx.fill();
-            if(ex.alpha <= 0) this.explosions.splice(i, 1);
+            // Projektil entfernen
+            if (proj.enemiesHit.length > this.player.stats.pierceCount || proj.x < 0 || proj.x > this.canvas.width || proj.y < 0 || proj.y > this.canvas.height) {
+                this.projectiles.splice(i, 1);
+            }
         }
-
-        for(let i=this.enemies.length-1; i>=0; i--) {
-            if(this.enemies[i].currentHp <= 0) {
-                const en = this.enemies[i];
-                this.loot.push({x:en.x, y:en.y, type:'xp'});
-                if(Math.random() > 0.7) this.loot.push({x:en.x+10, y:en.y, type:'money'});
-                this.enemies.splice(i, 1);
-                this.stats.totalMoneyEarned += 10;
+        
+        // 5. PARTIKEL UPDATE
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            this.particles[i].update();
+            if (this.particles[i].alpha <= 0 || this.particles[i].size <= 0.5) {
+                this.particles.splice(i, 1);
             }
         }
 
-        // Loot & GLOBAL MAGNET
-        for(let i=this.loot.length-1; i>=0; i--) {
-            let l = this.loot[i];
-            const dx = this.player.x - l.x;
-            const dy = this.player.y - l.y;
-            const dist = Math.hypot(dx, dy);
-            
-            const pullSpeed = Math.min(8, dist / 10); 
-            
-            l.x += (dx / dist) * pullSpeed;
-            l.y += (dy / dist) * pullSpeed;
-            
-            if(dist < 20) {
-                if(l.type === 'xp') {
-                    this.stats.xp += 10 * (this.player.stats.xpMult || 1);
-                    this.audio.playCollectXP();
-                } else {
-                    this.stats.money += 10 * (this.player.stats.moneyMult || 1);
-                    this.audio.playCollectMoney();
-                }
-                this.loot.splice(i, 1);
-                this.checkLevel();
-            }
-            
-            this.ctx.font = "20px Arial";
-            this.ctx.fillText(l.type==='xp'?'✨':'📀', l.x, l.y);
-        }
-        
-        this.drawGameObjects();
-        this.ui.update();
-    }
-    
-    drawGameObjects() {
-        this.drawPlayer();
-
-        this.enemies.forEach(en => {
-            this.ctx.font = `${en.scale}px Arial`;
-            this.ctx.fillText(en.emoji, en.x, en.y);
-        });
-        
-        this.drawActiveUpgrades();
-    }
-
-    drawPlayer() {
-        const p = this.player;
-        this.ctx.textAlign = "center";
-        this.ctx.textBaseline = "middle";
-
-        const hpPerc = p.hp / p.maxHp;
-        
-        if (p.x > 0 && p.y > 0) {
-            this.ctx.font = "40px Arial";
-            this.ctx.fillText("💾", p.x, p.y);
-
-            this.ctx.beginPath();
-            this.ctx.arc(p.x, p.y, 30, 0, Math.PI * 2);
-            this.ctx.strokeStyle = "rgba(255,0,0,0.3)";
-            this.ctx.lineWidth = 4;
-            this.ctx.stroke();
-
-            this.ctx.beginPath();
-            this.ctx.arc(p.x, p.y, 30, -Math.PI/2, (-Math.PI/2) + (Math.PI*2 * hpPerc));
-            this.ctx.strokeStyle = `hsl(${hpPerc * 120}, 100%, 50%)`; 
-            this.ctx.stroke();
-        }
-    }
-    
-    drawActiveUpgrades() {
-        const u = this.upgrades.activeUpgrades;
-        const iconSize = 28;
-        const totalWidth = u.length * iconSize * 1.5;
-        const startX = canvas.width / 2 - (totalWidth / 2);
-        const startY = canvas.height - 40; 
-        
-        this.ctx.textAlign = "center";
-        this.ctx.textBaseline = "middle";
-        
-        u.forEach((up, index) => {
-            const x = startX + (index * iconSize * 1.5);
-            const y = startY;
-            
-            this.ctx.font = `${iconSize}px Arial`;
-            this.ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-            this.ctx.fillText(up.emoji, x, y);
-            
-            this.ctx.font = "12px Arial";
-            this.ctx.fillStyle = "white";
-            this.ctx.fillText(`L${up.level}`, x, y + iconSize / 2 + 5);
-        });
-    }
-
-    checkLevel() {
-        if(this.stats.xp >= this.stats.xpToNext) {
-            this.stats.xp = 0;
-            this.stats.xpToNext *= 1.2;
+        // 6. UPGRADE/LEVEL-UP CHECK
+        if (this.stats.xp >= this.stats.xpToNext) {
+            this.stats.xp -= this.stats.xpToNext;
+            this.stats.xpToNext *= 1.5;
             this.stats.level++;
-            this.paused = true;
+            this.upgrades.levelUp(); 
             this.audio.playLevelUp();
-            this.showUpgradeMenu();
         }
+        
+        // 7. AKTIVE UPGRADES (Regen, AoE-Schaden etc.)
+        this.upgrades.update(deltaTime); 
     }
 
+    draw(ctx) {
+        // Hintergrund
+        ctx.fillStyle = '#1e1e1e';
+        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // 1. Projektile zeichnen
+        this.projectiles.forEach(p => p.draw(ctx));
+
+        // 2. Gegner zeichnen
+        this.enemies.forEach(en => en.draw(ctx));
+
+        // 3. Spieler zeichnen
+        this.player.draw(ctx);
+        
+        // 4. Partikel zeichnen (Polish)
+        this.particles.forEach(p => p.draw(ctx));
+        
+        // 5. Lootbox Animation (über allem)
+        this.lootBoxAnimation.draw(ctx);
+        
+        // 6. UI updaten (HUD)
+        this.ui.updateHUD(); 
+
+        // 7. Game Over Screen
+        if (this.gameOver) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+            ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            ctx.textAlign = 'center';
+            ctx.font = '60px Arial';
+            ctx.fillStyle = 'white';
+            ctx.fillText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2 - 30);
+            ctx.font = '30px Arial';
+            ctx.fillText(`Level erreicht: ${this.stats.level}`, this.canvas.width / 2, this.canvas.height / 2 + 30);
+        }
+    }
+    
     showUpgradeMenu() {
         const modalBody = document.getElementById('modal-body');
         document.getElementById('modal-title').innerText = "LEVEL UP!";
@@ -359,11 +457,24 @@ class Game {
         this.paused = state;
         const overlay = document.getElementById('menu-overlay');
         if(state) {
-            overlay.classList.remove('hidden');
+            // Verhindern, dass die Upgrade-Menü-Logik bei Lootbox-Pause triggert
+            if(!this.lootBoxAnimation.isRunning) {
+                overlay.classList.remove('hidden');
+            }
         }
         else {
             overlay.classList.add('hidden');
         }
+    }
+
+    loop(currentTime) {
+        const deltaTime = currentTime - this.lastTime;
+        this.lastTime = currentTime;
+        
+        this.update(deltaTime);
+        this.draw(this.ctx);
+        
+        requestAnimationFrame(this.loop.bind(this));
     }
 }
 
