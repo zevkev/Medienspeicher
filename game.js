@@ -12,6 +12,7 @@ class Projectile {
         this.color = color;
         this.velocity = velocity;
         
+        // Berechnung des Schadens (mit Krit-Multiplikator)
         this.isCritical = Math.random() < critChance;
         this.damage = (10 * damageMult) * (this.isCritical ? (1 + critDamage) : 1); 
         this.pierce = pierceCount; 
@@ -99,11 +100,27 @@ class Player {
         if (keys['s']) this.y = Math.min(this.game.canvas.height - this.radius, this.y + this.speed);
         if (keys['a']) this.x = Math.max(this.radius, this.x - this.speed);
         if (keys['d']) this.x = Math.min(this.game.canvas.width - this.radius, this.x + this.speed);
+        
+        // Loot Magnetism
+        this.game.loot.forEach(l => {
+            const dx = this.x - l.x;
+            const dy = this.y - l.y;
+            const dist = Math.hypot(dx, dy);
+            
+            // Magnet-Effekt-Distanz skaliert mit Upgrade
+            const effectiveRange = 100 + (this.stats.pickupRange * 50); 
+            
+            if (dist < effectiveRange) {
+                const pullSpeed = Math.min(this.speed * 2, dist / 10); 
+                l.x += (dx / dist) * pullSpeed;
+                l.y += (dy / dist) * pullSpeed;
+            }
+        });
     }
     
     shoot(mousePos) {
         const now = Date.now();
-        // Berechnet effektive Feuerrate (Basis 600ms * Multiplikatoren)
+        // Berechnet effektive Feuerrate (Basis 600ms / Multiplikatoren)
         const effectiveFireRate = 600 / this.stats.fireRateMult; 
         
         if (now - this.lastShot < effectiveFireRate) return;
@@ -138,10 +155,10 @@ class Player {
     }
 
     draw(ctx) {
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
+        this.game.ctx.textAlign = "center";
+        this.game.ctx.textBaseline = "middle";
+        this.game.ctx.font = "40px Arial";
+        this.game.ctx.fillText("💾", this.x, this.y); // Zeichne Floppy Disk Emoji als Spieler
 
         if (this.stats.shieldActive) {
             ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
@@ -198,13 +215,22 @@ class Game {
         this.particles = [];
         this.input = { keys: {}, mousePos: { x: this.canvas.width / 2, y: this.canvas.height / 2 }, mouseDown: false };
         this.lastTime = 0;
+        this.spawnTimer = 0; 
+        this.spawnInterval = 120; // Startwert für 2 Sekunden bei 60 FPS
         
         this.setupInput();
         this.saveData.resetAndApplyUpgrades(); 
+        
+        // Startet den Game-Loop sofort (aber er wird angehalten, bis unpaused)
+        requestAnimationFrame(this.loop.bind(this));
     }
     
     setupInput() {
-        document.addEventListener('keydown', e => this.input.keys[e.key.toLowerCase()] = true);
+        document.addEventListener('keydown', e => {
+             this.input.keys[e.key.toLowerCase()] = true;
+             // Pause/Resume auf Escape-Taste
+             if(e.key === 'Escape') this.pauseGame(!this.paused);
+        });
         document.addEventListener('keyup', e => this.input.keys[e.key.toLowerCase()] = false);
 
         this.canvas.addEventListener('mousemove', e => {
@@ -217,14 +243,17 @@ class Game {
     }
     
     startGame() {
-        this.paused = false;
+        // Zuerst Reset und Upgrades anwenden
+        this.saveData.resetAndApplyUpgrades();
+        this.ui.updateHUD(); 
+        
         document.getElementById('start-overlay').classList.add('hidden');
         document.getElementById('ui-layer').classList.remove('hidden');
-        requestAnimationFrame(this.loop.bind(this));
         
         this.player.x = this.canvas.width / 2;
         this.player.y = this.canvas.height / 2;
-        this.ui.updateHUD();
+        
+        this.paused = false;
     }
     
     createExplosionParticles(x, y, color, count) {
@@ -240,7 +269,6 @@ class Game {
         return newParticles;
     }
     
-    // NEU: Methode zur Schadensverarbeitung (mit Schild-Check und Polish)
     takeDamage(damage) {
         this.audio.playDamage();
         
@@ -268,17 +296,15 @@ class Game {
         }
     }
     
-    // NEU: Powerup-Anwendung der Lootbox
     applyLootboxPowerUp(id) {
         const pStats = this.player.stats;
         switch (id) {
             case 'fireRate':
-                // Temporär FireRate auf Basiswert setzen (schneller schießen)
                 const originalFireRateMult = pStats.fireRateMult;
                 pStats.fireRateMult *= 2; // Verdoppelte Feuerrate
                 setTimeout(() => {
                     pStats.fireRateMult = originalFireRateMult;
-                    this.saveData.resetAndApplyUpgrades(); // Upgrades neu anwenden, um den originalen Multiplikator wiederherzustellen
+                    this.saveData.resetAndApplyUpgrades(); 
                 }, 10000); 
                 break;
             case 'doubleShot':
@@ -297,6 +323,11 @@ class Game {
 
 
     update(deltaTime) {
+        // Game-Timer-Update
+        if (!this.paused && !this.gameOver) {
+            // (Hier könnte die Spielzeit hochgezählt werden)
+        }
+        
         if (this.lootBoxAnimation.isRunning) {
             this.lootBoxAnimation.update();
         }
@@ -308,12 +339,15 @@ class Game {
         if (this.input.mouseDown) {
             this.player.shoot(this.input.mousePos);
         }
+        
+        // HP Regeneration
+        this.player.hp = Math.min(this.player.maxHp, this.player.hp + this.player.stats.regen * deltaTime / 1000);
 
         // 2. ENEMY SPAWN
-        this.enemySystem.spawnTimer++;
-        if (this.enemySystem.spawnTimer >= this.enemySystem.spawnInterval - (this.stats.level * 2)) {
+        this.spawnTimer++;
+        if (this.spawnTimer >= this.spawnInterval - (this.stats.level * 2)) {
             this.enemySystem.spawn();
-            this.enemySystem.spawnTimer = 0;
+            this.spawnTimer = 0;
         }
         
         // 3. ENEMY UPDATE (Bewegung und Kollision mit Spieler)
@@ -323,8 +357,6 @@ class Game {
         for (let i = this.projectiles.length - 1; i >= 0; i--) {
             const proj = this.projectiles[i];
             proj.update();
-            
-            let hit = false;
             
             for (let j = this.enemies.length - 1; j >= 0; j--) {
                 const en = this.enemies[j];
@@ -336,7 +368,9 @@ class Game {
                     en.currentHp -= proj.damage;
                     this.audio.playHit();
                     proj.enemiesHit.push(en);
-                    hit = true;
+                    
+                    // Particle-Feedback beim Treffer
+                    this.particles.push(...this.createExplosionParticles(proj.x, proj.y, proj.isCritical ? '#ff00ea' : 'white', 3));
                     
                     if (en.currentHp <= 0) {
                         this.stats.xp += 10 * this.player.stats.xpMult; 
@@ -344,24 +378,26 @@ class Game {
                         this.stats.totalMoneyEarned += 1 * this.player.stats.moneyMult;
                         this.audio.playCollectXP();
                         this.audio.playCollectMoney();
-                        this.particles.push(
-                            ...this.createExplosionParticles(en.x, en.y, 'orange', 15)
-                        );
                         
-                        if (Math.random() < 0.1) {
+                        this.particles.push(...this.createExplosionParticles(en.x, en.y, 'orange', 15));
+                        
+                        if (Math.random() < 0.05) { // Geringe Chance auf Lootbox
                             this.lootBoxAnimation.startAnimation();
                         }
                         
                         this.enemies.splice(j, 1);
                         
                     } else if (proj.pierce <= proj.enemiesHit.length - 1) {
-                        break; // Durchschlagskraft erschöpft
+                        // Projektil hat maximale Durchschlagskraft erreicht
+                        this.projectiles.splice(i, 1); 
+                        i--; // Wichtig, da ein Element entfernt wurde
+                        break;
                     }
                 }
             }
 
-            // Projektil entfernen
-            if (proj.enemiesHit.length > this.player.stats.pierceCount || proj.x < 0 || proj.x > this.canvas.width || proj.y < 0 || proj.y > this.canvas.height) {
+            // Projektil außerhalb des Bildschirms entfernen
+            if (i >= 0 && (proj.x < 0 || proj.x > this.canvas.width || proj.y < 0 || proj.y > this.canvas.height)) {
                 this.projectiles.splice(i, 1);
             }
         }
@@ -395,31 +431,33 @@ class Game {
         // 1. Projektile zeichnen
         this.projectiles.forEach(p => p.draw(ctx));
 
-        // 2. Gegner zeichnen
+        // 2. Loot (XP/Geld) zeichnen
+        this.loot.forEach(l => {
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = "20px Arial";
+            ctx.fillStyle = l.type === 'xp' ? '#00d2ff' : '#f1c40f';
+            ctx.fillText(l.type === 'xp' ? '✨' : '📀', l.x, l.y);
+        });
+
+        // 3. Gegner zeichnen
         this.enemies.forEach(en => en.draw(ctx));
 
-        // 3. Spieler zeichnen
+        // 4. Spieler zeichnen
         this.player.draw(ctx);
         
-        // 4. Partikel zeichnen (Polish)
+        // 5. Partikel zeichnen (Polish)
         this.particles.forEach(p => p.draw(ctx));
         
-        // 5. Lootbox Animation (über allem)
+        // 6. Lootbox Animation (über allem)
         this.lootBoxAnimation.draw(ctx);
         
-        // 6. UI updaten (HUD)
+        // 7. UI updaten (HUD)
         this.ui.updateHUD(); 
 
-        // 7. Game Over Screen
+        // 8. Game Over Screen (wird nur angezeigt, wenn gameOver=true)
         if (this.gameOver) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-            ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            ctx.textAlign = 'center';
-            ctx.font = '60px Arial';
-            ctx.fillStyle = 'white';
-            ctx.fillText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2 - 30);
-            ctx.font = '30px Arial';
-            ctx.fillText(`Level erreicht: ${this.stats.level}`, this.canvas.width / 2, this.canvas.height / 2 + 30);
+            // (Das Game Over Overlay in index.html ist für die Anzeige zuständig)
         }
     }
     
@@ -454,9 +492,12 @@ class Game {
     }
     
     pauseGame(state) {
+        if (this.gameOver) return;
         this.paused = state;
         const overlay = document.getElementById('menu-overlay');
+        
         if(state) {
+            document.getElementById('modal-title').innerText = "PAUSE";
             // Verhindern, dass die Upgrade-Menü-Logik bei Lootbox-Pause triggert
             if(!this.lootBoxAnimation.isRunning) {
                 overlay.classList.remove('hidden');
@@ -467,6 +508,7 @@ class Game {
         }
     }
 
+    // Haupt-Game-Loop mit DeltaTime für flüssige Bewegung
     loop(currentTime) {
         const deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
