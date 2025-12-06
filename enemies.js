@@ -2,9 +2,17 @@ class EnemySystem {
     constructor(game) {
         this.game = game;
         this.definitions = [
-            { id: 'normal', emoji: '🪲', hp: 20, speed: 1.2, damage: 10, scale: 30, chance: 0.6 },
-            { id: 'fast', emoji: '🐞', hp: 8, speed: 2.5, damage: 5, scale: 20, chance: 0.3 },
-            { id: 'tank', emoji: '🪳', hp: 60, speed: 0.6, damage: 20, scale: 45, chance: 0.1 }
+            { id: 'normal', emoji: '🪲', hp: 20, speed: 1.2, damage: 10, scale: 30, chance: 0.2 },
+            { id: 'fast', emoji: '🐞', hp: 8, speed: 2.5, damage: 5, scale: 20, chance: 0.15 },
+            { id: 'tank', emoji: '🪳', hp: 60, speed: 0.6, damage: 20, scale: 45, chance: 0.05 },
+            // --- Neue Bugs ---
+            { id: 'sprinter', emoji: '🐜', hp: 12, speed: 3.5, damage: 7, scale: 22, chance: 0.2 }, // Sehr schnell, wenig HP
+            { id: 'brute', emoji: '🕷️', hp: 80, speed: 0.4, damage: 30, scale: 50, chance: 0.05 }, // Extrem viel HP und Schaden, sehr langsam
+            { id: 'mosquito', emoji: '🦟', hp: 5, speed: 1.8, damage: 3, scale: 15, chance: 0.2 }, // Schwach, aber schwer zu treffen, geringer Schaden
+            { id: 'bomber', emoji: '🦗', hp: 30, speed: 1.0, damage: 50, scale: 35, chance: 0.1 }, // Moderat, hoher Schaden-Output beim Aufprall
+            { id: 'juggernaut', emoji: '🦂', hp: 100, speed: 0.3, damage: 40, scale: 60, chance: 0.05 } // Der ultimative Tank: Langsam, viel HP, hoher Schaden
+            // Die Wahrscheinlichkeiten (chance) wurden angepasst, um insgesamt 1.0 zu ergeben:
+            // 0.2 + 0.15 + 0.05 + 0.2 + 0.05 + 0.2 + 0.1 + 0.05 = 1.0
         ];
     }
 
