@@ -67,7 +67,7 @@ class SaveData {
             projLife: 60, // Basislife (Frames)
             xpMult: 1, 
             moneyMult: 1, 
-            pickupRange: 100, 
+            // pickupRange: 100, // <--- ENTFERNT: Nicht mehr nötig, da Loot global zieht
             regen: 0, 
             splashChance: 0,
             critChance: 0, 
