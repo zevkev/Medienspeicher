@@ -31,11 +31,16 @@
             <div id="level-display">LEVEL 1</div>
             <div id="xp-bar-container">
                 <div id="xp-bar-fill"></div>
-                <div id="xp-text">0 / 100 XP</div>
+                <div id="xp-text">0 / 100</div>
             </div>
         </div>
 
-        <div class="glass-panel" id="shop-panel">
+        <div class="glass-panel" id="stats-panel">
+            <div id="hp-bar-container">
+                <div id="hp-bar-fill"></div>
+                <div id="hp-text">100 / 100</div>
+            </div>
+            <div id="timer-display">🕒 0:00</div>
             <div id="money-display">📀 0</div>
             <button id="btn-shop" class="shop-btn">Lootbox (📀 <span id="lootbox-cost">100</span>)</button>
         </div>
@@ -71,10 +76,11 @@
     <canvas id="gameCanvas"></canvas>
 
     <script src="audio.js"></script>
-    <script src="ui.js"></script>
-    <script src="enemies.js"></script>
     <script src="upgrades.js"></script>
+    <script src="enemies.js"></script>
+    <script src="LootBoxAnimation.js"></script>
     <script src="save_data.js"></script>
+    <script src="ui.js"></script>
     <script src="game.js"></script>
 </body>
 </html>
