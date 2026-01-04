@@ -4,20 +4,31 @@
 <meta charset="UTF-8">
 <title>Bildergalerie</title>
 <style>
+/* ----------------- Body & Hintergrund ----------------- */
 body {
     margin: 0;
     padding: 30px;
-    background: #0f0f0f;
     font-family: Arial, sans-serif;
     color: #fff;
-    transition: background 0.3s, color 0.3s;
+    transition: background 0.8s, color 0.8s;
+    background: linear-gradient(135deg, #2821ad, #af63bd);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
 }
 
 body.light {
-    background: #f0f0f0;
     color: #000;
+    background: linear-gradient(135deg, #87CEEB, #FFD700);
 }
 
+/* ----------------- Animation Gradient ----------------- */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* ----------------- Gallery ----------------- */
 .gallery {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -25,15 +36,16 @@ body.light {
 }
 
 .card {
-    background: #181818;
+    background: rgba(0,0,0,0.3);
     border-radius: 12px;
     padding: 12px;
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s;
+    backdrop-filter: blur(5px);
 }
 
 body.light .card {
-    background: #fff;
+    background: rgba(255,255,255,0.2);
 }
 
 .card:hover {
@@ -47,14 +59,12 @@ body.light .card {
     display: block;
     border-radius: 8px;
     opacity: 0;
-    transition: opacity 0.5s;
+    transition: opacity 0.6s;
 }
 
-.card img.loaded {
-    opacity: 1;
-}
+.card img.loaded { opacity: 1; }
 
-/* LIGHTBOX */
+/* ----------------- Lightbox ----------------- */
 .lightbox {
     position: fixed;
     inset: 0;
@@ -66,23 +76,33 @@ body.light .card {
     flex-direction: column;
 }
 
-.lightbox.active {
-    display: flex;
-}
+.lightbox.active { display: flex; }
 
 .lightbox img {
     max-width: 90vw;
     max-height: 80vh;
     border-radius: 12px;
-    animation: fadeIn 0.3s ease;
+    animation: fadeIn 0.4s ease;
+    transition: transform 0.2s ease;
 }
 
-.lightbox .caption {
-    margin-top: 10px;
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ----------------- Caption ----------------- */
+.caption {
+    margin-top: 12px;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(6px);
     font-size: 1.2em;
 }
 
-.lightbox .nav {
+/* ----------------- Navigation Pfeile ----------------- */
+.nav {
     position: absolute;
     top: 50%;
     font-size: 2em;
@@ -92,51 +112,69 @@ body.light .card {
     padding: 10px;
     background: rgba(0,0,0,0.3);
     border-radius: 50%;
+    z-index: 1001;
 }
 
-.lightbox .nav.left { left: 20px; }
-.lightbox .nav.right { right: 20px; }
+.nav.left { left: 20px; }
+.nav.right { right: 20px; }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-}
-
-/* Dark/Light Button */
+/* ----------------- Theme Toggle ----------------- */
 #themeToggle {
     position: fixed;
     top: 20px;
     right: 20px;
     padding: 8px 12px;
     cursor: pointer;
-    background: #333;
+    background: rgba(0,0,0,0.5);
     color: #fff;
     border: none;
     border-radius: 8px;
+    z-index: 2000;
 }
 
 body.light #themeToggle {
-    background: #ddd;
+    background: rgba(255,255,255,0.5);
     color: #000;
 }
 
-/* Flappy Bird Canvas */
-#flappyCanvas {
+/* ----------------- Secret Flappy Bird ----------------- */
+#flappyContainer {
     display: none;
     position: fixed;
-    top: 50%;
-    left: 50%;
+    top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     z-index: 2000;
-    background: #70c5ce;
-    border: 2px solid #000;
+    width: 90%;
+    max-width: 400px;
+    aspect-ratio: 2/3;
     border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #fff;
+    background: #000;
+}
+#flappyContainer iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+#flappyStart {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #ff0;
+    color: #000;
+    padding: 10px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    z-index: 10;
 }
 </style>
 </head>
 <body>
 
-<button id="themeToggle">🌙/☀️</button>
+<button id="themeToggle">🌙 / ☀️</button>
 
 <div class="gallery" id="gallery"></div>
 
@@ -147,10 +185,14 @@ body.light #themeToggle {
     <div class="caption" id="caption"></div>
 </div>
 
-<canvas id="flappyCanvas" width="400" height="600"></canvas>
+<!-- Secret Flappy Bird -->
+<div id="flappyContainer">
+    <div id="flappyStart">PLAY FLAPPY</div>
+    <iframe src="https://idev.games/embed/flappy-birds" id="flappyIframe"></iframe>
+</div>
 
 <script>
-// --------- Bilder Setup ---------
+// ----------------- Daten -----------------
 const namen = ["bello","Jamon","Medienspeicher","ZevKev"];
 const endungen = ["png","jpg","jpeg"];
 const gallery = document.getElementById("gallery");
@@ -158,130 +200,98 @@ const lightbox = document.getElementById("lightbox");
 const lightboxImg = document.getElementById("lightbox-img");
 const caption = document.getElementById("caption");
 const themeToggle = document.getElementById("themeToggle");
+const flappyContainer = document.getElementById("flappyContainer");
+const flappyStart = document.getElementById("flappyStart");
 
 let currentIndex = 0;
 let imgs = [];
 
-// Dark/Light toggle
-themeToggle.addEventListener("click", () => {
+// ----------------- Theme Toggle -----------------
+themeToggle.addEventListener("click", ()=>{
     document.body.classList.toggle("light");
 });
 
-// Erzeuge Galerie
-namen.forEach((name, idx) => {
+// ----------------- Galerie erzeugen -----------------
+namen.forEach((name, idx)=>{
     const card = document.createElement("div");
     card.className = "card";
-
     const img = document.createElement("img");
     let i = 0;
-    function tryNext() { if(i>=endungen.length) return; img.src=`Bilder/${name}.${endungen[i++]}`;}
+    function tryNext(){ if(i>=endungen.length) return; img.src=`Bilder/${name}.${endungen[i++]}`;}
     img.onerror = tryNext;
     tryNext();
-    img.onload = () => img.classList.add("loaded");
-
+    img.onload = ()=>img.classList.add("loaded");
     card.appendChild(img);
     gallery.appendChild(card);
     imgs.push({img: img.src, name: name});
 
-    // Klick öffnet Lightbox oder Flappy Bird bei letztem Bild
-    card.addEventListener("click", () => {
-        if(name === "ZevKev") { startFlappy(); return; } // Beispiel Mini-Spiel
+    card.addEventListener("click", ()=>{
+        // Secret Flappy Bird Easter Egg
+        if(name === "Medienspeicher"){
+            flappyContainer.style.display="block";
+            return;
+        }
         currentIndex = idx;
         openLightbox();
     });
 });
 
-// --------- Lightbox Funktionen ---------
+// ----------------- Lightbox Funktionen -----------------
 function openLightbox(){
     lightboxImg.src = imgs[currentIndex].img;
     caption.textContent = imgs[currentIndex].name;
     lightbox.classList.add("active");
 }
 
-function closeLightbox() { lightbox.classList.remove("active"); }
+function closeLightbox(){ lightbox.classList.remove("active"); }
 
-document.getElementById("prev").addEventListener("click", e => {
+// Pfeile Navigation
+document.getElementById("prev").addEventListener("click", e=>{
     e.stopPropagation();
     currentIndex = (currentIndex-1+imgs.length)%imgs.length;
     openLightbox();
 });
-
-document.getElementById("next").addEventListener("click", e => {
+document.getElementById("next").addEventListener("click", e=>{
     e.stopPropagation();
     currentIndex = (currentIndex+1)%imgs.length;
     openLightbox();
 });
 
+// ESC schließen
 lightbox.addEventListener("click", closeLightbox);
-document.addEventListener("keydown", e => {
+document.addEventListener("keydown", e=>{
     if(e.key==="Escape") closeLightbox();
     if(e.key==="ArrowLeft") currentIndex=(currentIndex-1+imgs.length)%imgs.length, openLightbox();
     if(e.key==="ArrowRight") currentIndex=(currentIndex+1)%imgs.length, openLightbox();
 });
 
-// Zoom mit Mausrad
-lightboxImg.addEventListener("wheel", e => {
+// ----------------- Zoom Lightbox -----------------
+lightboxImg.addEventListener("wheel", e=>{
     e.preventDefault();
-    let scale = Number(lightboxImg.style.transform.replace("scale(","").replace(")","")) || 1;
-    scale += e.deltaY * -0.001;
-    scale = Math.min(Math.max(1, scale), 5);
-    lightboxImg.style.transform = `scale(${scale})`;
+    let scale = Number(lightboxImg.style.transform.replace("scale(","").replace(")",""))||1;
+    scale += e.deltaY*-0.001;
+    scale=Math.min(Math.max(1,scale),5);
+    lightboxImg.style.transform=`scale(${scale})`;
 });
 
-// Mobile Swipe
-let startX = 0;
-lightbox.addEventListener("touchstart", e => startX=e.touches[0].clientX);
-lightbox.addEventListener("touchend", e => {
-    let dx = e.changedTouches[0].clientX - startX;
+// ----------------- Swipe Mobile -----------------
+let startX=0;
+lightbox.addEventListener("touchstart", e=>startX=e.touches[0].clientX);
+lightbox.addEventListener("touchend", e=>{
+    let dx=e.changedTouches[0].clientX-startX;
     if(dx>50) currentIndex=(currentIndex-1+imgs.length)%imgs.length, openLightbox();
     if(dx<-50) currentIndex=(currentIndex+1)%imgs.length, openLightbox();
 });
 
-// --------- Einfaches Flappy Bird Mini-Spiel ---------
-const canvas = document.getElementById("flappyCanvas");
-const ctx = canvas.getContext("2d");
-let bird = {x:50, y:300, vy:0};
-let pipes=[], frame=0, running=false;
-
-function startFlappy(){
-    canvas.style.display="block";
-    bird={x:50,y:300,vy:0}; pipes=[]; frame=0; running=true;
-    requestAnimationFrame(gameLoop);
-}
-
-canvas.addEventListener("click", () => bird.vy=-8);
-
-function gameLoop(){
-    if(!running) return;
-    frame++;
-    ctx.fillStyle="#70c5ce"; ctx.fillRect(0,0,canvas.width,canvas.height);
-
-    // Bird
-    bird.vy+=0.5; bird.y+=bird.vy;
-    ctx.fillStyle="#ff0"; ctx.fillRect(bird.x,bird.y,30,30);
-
-    // Pipes
-    if(frame%90===0){
-        let height=Math.random()*200+100;
-        pipes.push({x:canvas.width,y:0,h:height},{x:canvas.width,y:height+150,h:canvas.height-height-150});
-    }
-    ctx.fillStyle="#0f0";
-    pipes.forEach(p=>{
-        p.x-=2;
-        ctx.fillRect(p.x,p.y,50,p.h);
-        // Kollisionscheck
-        if(bird.x< p.x+50 && bird.x+30>p.x && bird.y<p.y+p.h && bird.y+30>p.y) running=false;
-    });
-    pipes=pipes.filter(p=>p.x+50>0);
-
-    // Boden
-    if(bird.y>canvas.height) running=false;
-
-    if(running) requestAnimationFrame(gameLoop);
-    else setTimeout(()=>canvas.style.display="none",1000);
-}
+// ----------------- Flappy Start Button -----------------
+flappyStart.addEventListener("click", ()=>{
+    flappyStart.style.display="none";
+    flappyContainer.querySelector("iframe").src += "?autoplay=1";
+});
 </script>
+
 </body>
 </html>
+
 
 
