@@ -18,32 +18,61 @@ body {
     gap: 25px;
 }
 
-/* Karten-Container */
 .card {
     background: #181818;
     border-radius: 12px;
     padding: 12px;
+    cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Hover Animation */
 .card:hover {
     transform: scale(1.05);
     box-shadow: 0 20px 40px rgba(0,0,0,0.6);
 }
 
-/* Bild */
 .card img {
     width: 100%;
-    height: auto;          /* echte Bildgröße / Verhältnis */
+    height: auto;
     display: block;
     border-radius: 8px;
+}
+
+/* LIGHTBOX */
+.lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.lightbox.active {
+    display: flex;
+}
+
+.lightbox img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 12px;
+    animation: zoomIn 0.3s ease;
+}
+
+@keyframes zoomIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
 }
 </style>
 </head>
 <body>
 
 <div class="gallery" id="gallery"></div>
+
+<div class="lightbox" id="lightbox">
+    <img id="lightbox-img">
+</div>
 
 <script>
 const namen = [
@@ -55,6 +84,8 @@ const namen = [
 
 const endungen = ["png", "jpg", "jpeg"];
 const gallery = document.getElementById("gallery");
+const lightbox = document.getElementById("lightbox");
+const lightboxImg = document.getElementById("lightbox-img");
 
 namen.forEach(name => {
     const card = document.createElement("div");
@@ -73,9 +104,27 @@ namen.forEach(name => {
 
     card.appendChild(img);
     gallery.appendChild(card);
+
+    card.addEventListener("click", () => {
+        lightboxImg.src = img.src;
+        lightbox.classList.add("active");
+    });
+});
+
+// schließen bei klick auf hintergrund
+lightbox.addEventListener("click", () => {
+    lightbox.classList.remove("active");
+});
+
+// schließen mit ESC
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape") {
+        lightbox.classList.remove("active");
+    }
 });
 </script>
 
 </body>
 </html>
+
 
