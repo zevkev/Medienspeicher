@@ -2,24 +2,42 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Bilder</title>
+<title>Bildergalerie</title>
 
 <style>
 body {
-    background: #111;
-    padding: 20px;
+    margin: 0;
+    padding: 30px;
+    background: #0f0f0f;
+    font-family: Arial, sans-serif;
 }
 
 .gallery {
-    display: flex;
-    gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 25px;
 }
 
-.gallery img {
-    width: 150px;
-    height: auto;
-    border-radius: 6px;
-    background: #222;
+/* Karten-Container */
+.card {
+    background: #181818;
+    border-radius: 12px;
+    padding: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover Animation */
+.card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+
+/* Bild */
+.card img {
+    width: 100%;
+    height: auto;          /* echte Bildgröße / Verhältnis */
+    display: block;
+    border-radius: 8px;
 }
 </style>
 </head>
@@ -35,14 +53,14 @@ const namen = [
     "ZevKev"
 ];
 
-// mögliche Endungen
 const endungen = ["png", "jpg", "jpeg"];
-
 const gallery = document.getElementById("gallery");
 
 namen.forEach(name => {
-    const img = document.createElement("img");
+    const card = document.createElement("div");
+    card.className = "card";
 
+    const img = document.createElement("img");
     let i = 0;
 
     function tryNext() {
@@ -53,7 +71,8 @@ namen.forEach(name => {
     img.onerror = tryNext;
     tryNext();
 
-    gallery.appendChild(img);
+    card.appendChild(img);
+    gallery.appendChild(card);
 });
 </script>
 
