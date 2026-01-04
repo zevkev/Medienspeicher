@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Bilder aus Ordner</title>
+
+<style>
+body {
+    margin: 0;
+    padding: 20px;
+    background: #eee;
+    font-family: Arial;
+}
+
+input {
+    margin-bottom: 20px;
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.gallery img {
+    width: 100%;
+    display: block;
+}
+</style>
+</head>
+<body>
+
+<input type="file"
+       webkitdirectory
+       multiple
+       accept=".png,.jpg,.jpeg">
+
+<div class="gallery" id="gallery"></div>
+
+<script>
+const input = document.querySelector("input");
+const gallery = document.getElementById("gallery");
+
+input.addEventListener("change", () => {
+    gallery.innerHTML = "";
+
+    [...input.files].forEach(file => {
+        // Nur PNG & JPG erlauben
+        if (!["image/png", "image/jpeg"].includes(file.type)) return;
+
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        gallery.appendChild(img);
+    });
+});
+</script>
+
+</body>
+</html>
