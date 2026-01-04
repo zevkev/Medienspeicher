@@ -2,58 +2,61 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Bilder aus Ordner</title>
+<title>Bilder</title>
 
 <style>
 body {
-    margin: 0;
+    background: #111;
     padding: 20px;
-    background: #eee;
-    font-family: Arial;
-}
-
-input {
-    margin-bottom: 20px;
 }
 
 .gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
+    display: flex;
+    gap: 20px;
 }
 
 .gallery img {
-    width: 100%;
-    display: block;
+    width: 150px;
+    height: auto;
+    border-radius: 6px;
+    background: #222;
 }
 </style>
 </head>
 <body>
 
-<input type="file"
-       webkitdirectory
-       multiple
-       accept=".png,.jpg,.jpeg">
-
 <div class="gallery" id="gallery"></div>
 
 <script>
-const input = document.querySelector("input");
+const namen = [
+    "bello",
+    "Jamon",
+    "Medienspeicher",
+    "ZevKev"
+];
+
+// mögliche Endungen
+const endungen = ["png", "jpg", "jpeg"];
+
 const gallery = document.getElementById("gallery");
 
-input.addEventListener("change", () => {
-    gallery.innerHTML = "";
+namen.forEach(name => {
+    const img = document.createElement("img");
 
-    [...input.files].forEach(file => {
-        // Nur PNG & JPG erlauben
-        if (!["image/png", "image/jpeg"].includes(file.type)) return;
+    let i = 0;
 
-        const img = document.createElement("img");
-        img.src = URL.createObjectURL(file);
-        gallery.appendChild(img);
-    });
+    function tryNext() {
+        if (i >= endungen.length) return;
+        img.src = `Bilder/${name}.${endungen[i++]}`;
+    }
+
+    img.onerror = tryNext;
+    tryNext();
+
+    gallery.appendChild(img);
 });
 </script>
 
 </body>
 </html>
+
