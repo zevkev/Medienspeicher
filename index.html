@@ -2,146 +2,270 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="description" content="Medienspeicher Bilder Galerie">
-<title>Medienspeicher Bilder Galerie</title>
+<title>Medienspeicher Galerie</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link id="dynamic-favicon" rel="icon" href="">
+
 <style>
-html, body {
-    height: 100%;
-    margin: 0;
-    font-family: Arial, sans-serif;
-    color: #fff;
-    overflow-x: hidden;
-    transition: background 0.8s, color 0.8s;
+:root {
+    --bg-dark: linear-gradient(135deg, #1b1b2f, #2d2d5a);
+    --bg-light: linear-gradient(135deg, #eef2ff, #fde68a);
+    --card-dark: rgba(0,0,0,0.45);
+    --card-light: rgba(255,255,255,0.65);
+    --text-dark: #fff;
+    --text-light: #111;
+    --accent: #7c7cff;
 }
 
 body {
-    background: linear-gradient(135deg, #2821ad, #af63bd);
-    background-size: 400% 400%;
-    animation: gradientBG 20s ease infinite;
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-dark);
+    transition: background 0.8s, color 0.8s;
 }
 
 body.light {
-    color: #000;
-    background: linear-gradient(135deg, #87CEEB, #FFD700);
+    background: var(--bg-light);
+    color: var(--text-light);
 }
 
-@keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+/* Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 35px;
 }
 
-/* ----------------- Header ----------------- */
-h1 {
-    text-align: center;
-    margin: 20px 0;
-    font-size: 2em;
-    backdrop-filter: blur(6px);
-    background: rgba(255,255,255,0.1);
-    border-radius: 12px;
-    display: inline-block;
-    padding: 10px 20px;
+header h1 {
+    margin: 0;
+    font-size: 2.2em;
 }
 
-/* ----------------- Gallery ----------------- */
-.gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 25px;
-    padding: 20px;
-    max-width: 1200px;
+.controls {
+    display: flex;
+    gap: 18px;
+    font-size: 1.4em;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Sections */
+section {
+    max-width: 1500px;
     margin: auto;
+    padding: 10px 35px 50px;
+}
+
+section h2 {
+    margin: 35px 0 18px;
+    font-size: 1.8em;
+    border-left: 5px solid var(--accent);
+    padding-left: 15px;
+}
+
+/* Masonry */
+.masonry {
+    column-count: 4;
+    column-gap: 26px;
+}
+
+@media (max-width: 1200px) {
+    .masonry { column-count: 3; }
+}
+@media (max-width: 800px) {
+    .masonry { column-count: 2; }
+}
+@media (max-width: 500px) {
+    .masonry { column-count: 1; }
 }
 
 .card {
-    background: rgba(0,0,0,0.3);
-    border-radius: 12px;
-    padding: 12px;
+    break-inside: avoid;
+    margin-bottom: 26px;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--card-dark);
+    backdrop-filter: blur(8px);
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    backdrop-filter: blur(5px);
+    transition: transform 0.4s, box-shadow 0.4s;
 }
 
 body.light .card {
-    background: rgba(255,255,255,0.2);
+    background: var(--card-light);
 }
 
 .card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
 }
 
 .card img {
     width: 100%;
-    height: auto;
     display: block;
-    border-radius: 8px;
-    opacity: 0;
-    transition: opacity 0.6s;
+    transition: transform 0.6s ease;
 }
 
-.card img.loaded { opacity: 1; }
+.card:hover img {
+    transform: scale(1.1);
+}
+
+/* Overlay */
+.overlay {
+    padding: 14px 16px;
+    background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
+}
+
+.title {
+    font-weight: 600;
+    font-size: 1.05em;
+}
+
+/* Lightbox */
+.lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+.lightbox.active {
+    display: flex;
+}
+
+.lightbox img {
+    max-width: 92%;
+    max-height: 92%;
+    border-radius: 20px;
+}
 </style>
 </head>
+
 <body>
 
-<h1>Medienspeicher Bilder Galerie</h1>
+<header>
+    <h1>📸 Medienspeicher</h1>
+    <div class="controls">
+        <div onclick="toggleTheme()">🌙</div>
+        <div onclick="startSlideshow()">▶️</div>
+    </div>
+</header>
 
-<div class="gallery" id="gallery"></div>
+<section>
+    <h2>🖼️ Galerie</h2>
+    <div class="masonry" id="gallery-main"></div>
+</section>
+
+<section>
+    <h2>⛏️ MC-Server</h2>
+    <div class="masonry" id="gallery-mc"></div>
+</section>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <img id="lightbox-img">
+</div>
 
 <script>
-const namen = ["bello","Jamon","Medienspeicher","ZevKev"];
-const endungen = ["png","jpg","jpeg"];
-const gallery = document.getElementById("gallery");
-let imgs = [];
+const endungen = ["png","jpg","jpeg","webp"];
+const mainNames = ["bello","Jamon","Medienspeicher","ZevKev"];
+const mcNames = ["DeathSwap","Survival","Temp"];
 
-// Funktion um Bilder zu laden und Endungen automatisch zu wechseln
-function loadImage(name, onLoadCallback) {
+let allImages = [];
+let slideshowIndex = 0;
+let slideshowTimer = null;
+
+/* Titel aus Dateiname */
+function prettify(name) {
+    return name
+        .replace(/[-_]/g, " ")
+        .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function loadImage(path, name, container) {
     let i = 0;
-    let img = new Image();
+    const img = new Image();
+
     function tryNext() {
-        if(i >= endungen.length) return; // kein Bild gefunden
-        img.src = `Bilder/${name}.${endungen[i++]}`;
+        if (i >= endungen.length) return;
+        img.src = `${path}${name}.${endungen[i++]}`;
     }
-    img.onload = () => onLoadCallback(img.src);
+
+    img.onload = () => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.onclick = () => openLightbox(img.src);
+
+        const overlay = document.createElement("div");
+        overlay.className = "overlay";
+        overlay.innerHTML = `<div class="title">${prettify(name)}</div>`;
+
+        card.appendChild(img);
+        card.appendChild(overlay);
+        container.appendChild(card);
+
+        allImages.push(img.src);
+    };
+
     img.onerror = tryNext;
     tryNext();
 }
 
-// Lade alle Bilder für die Galerie
-namen.forEach((name)=>{
-    loadImage(name, (src)=>{
-        const card = document.createElement("div");
-        card.className = "card";
-        const img = document.createElement("img");
-        img.src = src;
-        img.classList.add("loaded");
-        card.appendChild(img);
-        gallery.appendChild(card);
-        imgs.push({img: src, name: name});
-    });
-});
+mainNames.forEach(n => loadImage("Bilder/", n, document.getElementById("gallery-main")));
+mcNames.forEach(n => loadImage("Bilder/mcserver/", n, document.getElementById("gallery-mc")));
 
-// Favicon zufällig aus Galerie
+/* Lightbox */
+function openLightbox(src) {
+    document.getElementById("lightbox-img").src = src;
+    document.getElementById("lightbox").classList.add("active");
+}
+
+function closeLightbox() {
+    document.getElementById("lightbox").classList.remove("active");
+    stopSlideshow();
+}
+
+/* Slideshow */
+function startSlideshow() {
+    if (!allImages.length) return;
+    slideshowIndex = 0;
+    openLightbox(allImages[0]);
+    slideshowTimer = setInterval(() => {
+        slideshowIndex = (slideshowIndex + 1) % allImages.length;
+        document.getElementById("lightbox-img").src = allImages[slideshowIndex];
+    }, 3000);
+}
+
+function stopSlideshow() {
+    clearInterval(slideshowTimer);
+}
+
+/* Theme */
+function toggleTheme() {
+    document.body.classList.toggle("light");
+}
+
+/* Favicon */
 function setRandomFavicon() {
-    let attempts = 0;
-    function tryFavicon() {
-        if(imgs.length === 0 && attempts < 10){
-            attempts++;
-            setTimeout(tryFavicon, 200);
-            return;
-        }
-        const randomIndex = Math.floor(Math.random() * imgs.length);
-        const favicon = document.getElementById("dynamic-favicon");
-        favicon.href = imgs[randomIndex].img;
+    if (!allImages.length) {
+        setTimeout(setRandomFavicon, 200);
+        return;
     }
-    tryFavicon();
+    document.getElementById("dynamic-favicon").href =
+        allImages[Math.floor(Math.random() * allImages.length)];
 }
 setRandomFavicon();
+
+/* ESC */
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeLightbox();
+});
 </script>
+
 </body>
 </html>
-
 
 
