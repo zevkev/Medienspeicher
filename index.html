@@ -2,270 +2,317 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Medienspeicher Galerie</title>
+<title>Medienspeicher Vista VM</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link id="dynamic-favicon" rel="icon" href="">
+<link id="dynamic-favicon" rel="icon">
 
 <style>
-:root {
-    --bg-dark: linear-gradient(135deg, #1b1b2f, #2d2d5a);
-    --bg-light: linear-gradient(135deg, #eef2ff, #fde68a);
-    --card-dark: rgba(0,0,0,0.45);
-    --card-light: rgba(255,255,255,0.65);
-    --text-dark: #fff;
-    --text-light: #111;
-    --accent: #7c7cff;
+/* ========== BASIS ========== */
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    font-family:"Segoe UI",Tahoma,sans-serif;
+    background:#000;
+}
+.hidden{display:none}
+
+/* ========== BOOTLOADER ========== */
+#boot{
+    position:fixed;
+    inset:0;
+    background:black;
+    color:white;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+}
+#bar{
+    width:240px;
+    height:6px;
+    background:#333;
+    margin-top:20px;
+    overflow:hidden;
+    border-radius:4px;
+}
+#bar span{
+    display:block;
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,#4fa3ff,#b6dcff);
+    animation:load 4s linear forwards;
+}
+@keyframes load{
+    to{width:100%}
 }
 
-body {
-    margin: 0;
-    font-family: "Segoe UI", Arial, sans-serif;
-    background: var(--bg-dark);
-    color: var(--text-dark);
-    transition: background 0.8s, color 0.8s;
+/* ========== DESKTOP ========== */
+#desktop{
+    position:fixed;
+    inset:0;
+    background:linear-gradient(135deg,#355c9b,#0c1c2e);
+    color:white;
+}
+.desktop-icons{
+    padding:20px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:22px;
+}
+.icon{
+    width:90px;
+    text-align:center;
+    cursor:pointer;
+    user-select:none;
+}
+.icon span{
+    font-size:42px;
+    display:block;
 }
 
-body.light {
-    background: var(--bg-light);
-    color: var(--text-light);
+/* ========== WINDOW (AERO) ========== */
+.window{
+    position:absolute;
+    top:90px;
+    left:90px;
+    width:440px;
+    background:rgba(255,255,255,.28);
+    backdrop-filter: blur(16px);
+    border-radius:14px;
+    box-shadow:0 35px 90px rgba(0,0,0,.6);
+    overflow:hidden;
+}
+.window-header{
+    padding:8px 12px;
+    background:linear-gradient(
+        rgba(255,255,255,.7),
+        rgba(255,255,255,.2)
+    );
+    display:flex;
+    justify-content:space-between;
+    cursor:move;
+}
+.window-content{
+    background:rgba(255,255,255,.92);
+    color:#000;
+    padding:12px;
+    max-height:320px;
+    overflow:auto;
 }
 
-/* Header */
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 22px 35px;
+/* ========== EXPLORER ========== */
+.explorer{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
+    gap:14px;
+}
+.file{
+    text-align:center;
+    cursor:pointer;
+}
+.file span{
+    font-size:36px;
+}
+.file small{
+    display:block;
+    word-break:break-word;
 }
 
-header h1 {
-    margin: 0;
-    font-size: 2.2em;
+/* ========== TASKBAR ========== */
+#taskbar{
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:0;
+    height:46px;
+    background:linear-gradient(#111,#000);
+    display:flex;
+    align-items:center;
+    padding:0 10px;
+}
+.task{
+    margin-right:10px;
+    cursor:pointer;
 }
 
-.controls {
-    display: flex;
-    gap: 18px;
-    font-size: 1.4em;
-    cursor: pointer;
-    user-select: none;
+/* ========== LIGHTBOX ========== */
+.lightbox{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.85);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:999;
 }
-
-/* Sections */
-section {
-    max-width: 1500px;
-    margin: auto;
-    padding: 10px 35px 50px;
-}
-
-section h2 {
-    margin: 35px 0 18px;
-    font-size: 1.8em;
-    border-left: 5px solid var(--accent);
-    padding-left: 15px;
-}
-
-/* Masonry */
-.masonry {
-    column-count: 4;
-    column-gap: 26px;
-}
-
-@media (max-width: 1200px) {
-    .masonry { column-count: 3; }
-}
-@media (max-width: 800px) {
-    .masonry { column-count: 2; }
-}
-@media (max-width: 500px) {
-    .masonry { column-count: 1; }
-}
-
-.card {
-    break-inside: avoid;
-    margin-bottom: 26px;
-    border-radius: 18px;
-    overflow: hidden;
-    background: var(--card-dark);
-    backdrop-filter: blur(8px);
-    cursor: pointer;
-    transition: transform 0.4s, box-shadow 0.4s;
-}
-
-body.light .card {
-    background: var(--card-light);
-}
-
-.card:hover {
-    transform: translateY(-6px) scale(1.03);
-    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
-}
-
-.card img {
-    width: 100%;
-    display: block;
-    transition: transform 0.6s ease;
-}
-
-.card:hover img {
-    transform: scale(1.1);
-}
-
-/* Overlay */
-.overlay {
-    padding: 14px 16px;
-    background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
-}
-
-.title {
-    font-weight: 600;
-    font-size: 1.05em;
-}
-
-/* Lightbox */
-.lightbox {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.9);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-}
-
-.lightbox.active {
-    display: flex;
-}
-
-.lightbox img {
-    max-width: 92%;
-    max-height: 92%;
-    border-radius: 20px;
+.lightbox img{
+    max-width:92%;
+    max-height:92%;
+    border-radius:14px;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-    <h1>📸 Medienspeicher</h1>
-    <div class="controls">
-        <div onclick="toggleTheme()">🌙</div>
-        <div onclick="startSlideshow()">▶️</div>
+<!-- BOOT -->
+<div id="boot">
+    <div>Windows is loading…</div>
+    <div id="bar"><span></span></div>
+</div>
+
+<!-- DESKTOP -->
+<div id="desktop" class="hidden">
+    <div class="desktop-icons" id="icons"></div>
+    <div id="taskbar">
+        <div class="task" onclick="shutdown()">⏻</div>
     </div>
-</header>
-
-<section>
-    <h2>🖼️ Galerie</h2>
-    <div class="masonry" id="gallery-main"></div>
-</section>
-
-<section>
-    <h2>⛏️ MC-Server</h2>
-    <div class="masonry" id="gallery-mc"></div>
-</section>
-
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-    <img id="lightbox-img">
 </div>
 
 <script>
-const endungen = ["png","jpg","jpeg","webp"];
-const mainNames = ["bello","Jamon","Medienspeicher","ZevKev"];
-const mcNames = ["DeathSwap","Survival","Temp"];
+/* ========== KONFIG ========== */
+const IMAGE_NAMES = [
+  "bello","Jamon","Medienspeicher","ZevKev",
+  "DeathSwap","Survival","Temp"
+];
+const EXT = ["png","jpg","jpeg","webp"];
+const PATHS = ["Bilder/","Bilder/mcserver/"];
+let images=[];
 
-let allImages = [];
-let slideshowIndex = 0;
-let slideshowTimer = null;
-
-/* Titel aus Dateiname */
-function prettify(name) {
-    return name
-        .replace(/[-_]/g, " ")
-        .replace(/\b\w/g, c => c.toUpperCase());
+/* ========== AUTO IMAGE FINDER ========== */
+async function findImage(name){
+    for(const p of PATHS){
+        for(const e of EXT){
+            const src=`${p}${name}.${e}`;
+            const img=new Image();
+            img.src=src;
+            await new Promise(r=>{
+                img.onload=()=>r(images.push({name,src,path:p}));
+                img.onerror=r;
+            });
+            if(img.complete && img.naturalWidth) return;
+        }
+    }
 }
 
-function loadImage(path, name, container) {
-    let i = 0;
-    const img = new Image();
+/* ========== BOOT SEQUENCE ========== */
+setTimeout(async()=>{
+    for(const n of IMAGE_NAMES) await findImage(n);
+    document.getElementById("boot").classList.add("hidden");
+    document.getElementById("desktop").classList.remove("hidden");
+    initDesktop();
+    document.getElementById("dynamic-favicon").href=
+      images[Math.floor(Math.random()*images.length)].src;
+},4000);
 
-    function tryNext() {
-        if (i >= endungen.length) return;
-        img.src = `${path}${name}.${endungen[i++]}`;
-    }
+/* ========== DESKTOP ICONS ========== */
+function initDesktop(){
+    const icons=document.getElementById("icons");
+    icons.innerHTML="";
 
-    img.onload = () => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.onclick = () => openLightbox(img.src);
+    icon("📂","Explorer",()=>openExplorer(images));
+    icon("📁","Galerie",()=>openExplorer(images.filter(i=>!i.path.includes("mcserver"))));
+    icon("📁","MC-Server",()=>openExplorer(images.filter(i=>i.path.includes("mcserver"))));
+    icon("ℹ️","Info.txt",openInfo);
+    icon("🌙","Day / Night",toggleTheme);
+}
 
-        const overlay = document.createElement("div");
-        overlay.className = "overlay";
-        overlay.innerHTML = `<div class="title">${prettify(name)}</div>`;
+function icon(emoji,name,fn){
+    const d=document.createElement("div");
+    d.className="icon";
+    d.innerHTML=`<span>${emoji}</span>${name}`;
+    d.onclick=fn;
+    document.getElementById("icons").appendChild(d);
+}
 
-        card.appendChild(img);
-        card.appendChild(overlay);
-        container.appendChild(card);
+/* ========== WINDOW SYSTEM ========== */
+function openWindow(title,content){
+    const w=document.createElement("div");
+    w.className="window";
+    w.innerHTML=`
+      <div class="window-header">
+        <b>${title}</b>
+        <span onclick="this.closest('.window').remove()">✖</span>
+      </div>
+      <div class="window-content">${content}</div>
+    `;
+    document.body.appendChild(w);
+    drag(w);
+}
 
-        allImages.push(img.src);
+/* ========== EXPLORER ========== */
+function openExplorer(list){
+    let html='<div class="explorer">';
+    list.forEach(i=>{
+        html+=`
+        <div class="file" onclick="openImage('${i.src}','${i.name}')">
+            <span>🖼️</span>
+            <small>${i.name}</small>
+        </div>`;
+    });
+    html+='</div>';
+    openWindow("Explorer",html);
+}
+
+function openImage(src,name){
+    const lb=document.createElement("div");
+    lb.className="lightbox";
+    lb.onclick=()=>lb.remove();
+    lb.innerHTML=`<img src="${src}">`;
+    document.body.appendChild(lb);
+}
+
+/* ========== INFO ========== */
+function openInfo(){
+    openWindow("Info.txt",
+    `Dies ist die Bildergallerie vom Medienspeicher.<br>
+     Alle Bilder für Social Media, Einbettung & Archiv.`);
+}
+
+/* ========== THEME ========== */
+function toggleTheme(){
+    document.body.style.filter=
+      document.body.style.filter?"":"invert(1)";
+}
+
+/* ========== DRAG + SNAP ========== */
+function drag(win){
+    const h=win.querySelector(".window-header");
+    let ox,oy;
+    h.onmousedown=e=>{
+        ox=e.offsetX;
+        oy=e.offsetY;
+        document.onmousemove=m=>{
+            win.style.left=(m.pageX-ox)+"px";
+            win.style.top=(m.pageY-oy)+"px";
+
+            if(m.pageX<20){
+                win.style.left="0";
+                win.style.top="0";
+                win.style.width="50%";
+                win.style.height="calc(100% - 46px)";
+            }
+            if(m.pageX>window.innerWidth-20){
+                win.style.left="50%";
+                win.style.top="0";
+                win.style.width="50%";
+                win.style.height="calc(100% - 46px)";
+            }
+        };
+        document.onmouseup=()=>document.onmousemove=null;
     };
-
-    img.onerror = tryNext;
-    tryNext();
 }
 
-mainNames.forEach(n => loadImage("Bilder/", n, document.getElementById("gallery-main")));
-mcNames.forEach(n => loadImage("Bilder/mcserver/", n, document.getElementById("gallery-mc")));
-
-/* Lightbox */
-function openLightbox(src) {
-    document.getElementById("lightbox-img").src = src;
-    document.getElementById("lightbox").classList.add("active");
+/* ========== SHUTDOWN ========== */
+function shutdown(){
+    document.body.innerHTML=
+      "<div style='background:black;color:white;display:flex;align-items:center;justify-content:center;height:100%'>Herunterfahren…</div>";
+    setTimeout(()=>location.href="https://zevkev.de",3000);
 }
-
-function closeLightbox() {
-    document.getElementById("lightbox").classList.remove("active");
-    stopSlideshow();
-}
-
-/* Slideshow */
-function startSlideshow() {
-    if (!allImages.length) return;
-    slideshowIndex = 0;
-    openLightbox(allImages[0]);
-    slideshowTimer = setInterval(() => {
-        slideshowIndex = (slideshowIndex + 1) % allImages.length;
-        document.getElementById("lightbox-img").src = allImages[slideshowIndex];
-    }, 3000);
-}
-
-function stopSlideshow() {
-    clearInterval(slideshowTimer);
-}
-
-/* Theme */
-function toggleTheme() {
-    document.body.classList.toggle("light");
-}
-
-/* Favicon */
-function setRandomFavicon() {
-    if (!allImages.length) {
-        setTimeout(setRandomFavicon, 200);
-        return;
-    }
-    document.getElementById("dynamic-favicon").href =
-        allImages[Math.floor(Math.random() * allImages.length)];
-}
-setRandomFavicon();
-
-/* ESC */
-document.addEventListener("keydown", e => {
-    if (e.key === "Escape") closeLightbox();
-});
 </script>
 
 </body>
 </html>
-
 
