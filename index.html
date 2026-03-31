@@ -3,137 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medienspeicher Pro</title>
+    <title>Medienspeicher Galerie</title>
     <style>
         :root {
-            --bg-color: #0f111a;
-            --card-bg: rgba(255, 255, 255, 0.05);
-            --accent: #7c7cff;
-            --text: #e0e0e0;
+            --bg: #0b0e14;
+            --accent: #00d4ff;
+            --card: #161b22;
+            --text: #f0f6fc;
         }
 
         body {
             margin: 0;
-            background-color: var(--bg-color);
+            background-color: var(--bg);
             color: var(--text);
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            overflow-x: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Hintergrund-Grid */
-        .grid-overlay {
+        /* Schickes Hintergrund-Raster */
+        .bg-grid {
             position: fixed;
             inset: 0;
-            background-image: 
-                linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 30px 30px;
+            background-image: linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
             z-index: -1;
-            pointer-events: none;
         }
 
-        /* Login */
-        #login-screen {
-            position: fixed;
-            inset: 0;
-            z-index: 10000;
-            background: var(--bg-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(20px);
-        }
-
-        .login-card {
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-
-        input {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--accent);
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            margin: 10px 0;
-            outline: none;
-            width: 200px;
-        }
-
-        button {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: opacity 0.2s;
-        }
-
-        /* Galerie-Layout */
         header {
-            padding: 40px 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
+
+        h1 { margin: 0; letter-spacing: 3px; font-weight: 300; }
+        h1 span { color: var(--accent); font-weight: 800; }
 
         .container {
-            width: 90%;
+            max-width: 1400px;
             margin: 0 auto;
+            padding: 40px 20px;
         }
 
         h2 {
+            border-left: 4px solid var(--accent);
+            padding-left: 15px;
+            margin: 40px 0 20px;
             font-size: 1.2rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 30px;
-            color: var(--accent);
-            border-bottom: 1px solid rgba(124, 124, 255, 0.3);
-            padding-bottom: 10px;
         }
 
+        /* Galerie-Gitter */
         .gallery {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 25px;
-            margin-bottom: 60px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
         }
 
-        .img-card {
-            background: var(--card-bg);
+        .card {
+            background: var(--card);
             border-radius: 12px;
             overflow: hidden;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
             border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
 
-        .img-card:hover {
-            transform: scale(1.05);
+        .card:hover {
+            transform: translateY(-5px);
             border-color: var(--accent);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
 
-        .img-card img {
+        .card img {
             width: 100%;
-            height: 200px;
+            height: 220px;
             object-fit: cover;
             display: block;
         }
 
-        .img-info {
+        .info {
             padding: 12px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             text-align: center;
-            background: rgba(0,0,0,0.2);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            background: rgba(0,0,0,0.3);
+            color: #8b949e;
         }
 
         /* Lightbox */
@@ -144,31 +97,21 @@
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 9999;
             padding: 20px;
         }
 
         #lightbox img {
             max-width: 95%;
             max-height: 95%;
-            object-fit: contain;
-            border-radius: 8px;
-            box-shadow: 0 0 40px rgba(0,0,0,1);
+            border-radius: 5px;
+            box-shadow: 0 0 30px rgba(0,212,255,0.2);
         }
     </style>
 </head>
 <body>
 
-<div class="grid-overlay"></div>
-
-<div id="login-screen">
-    <div class="login-card">
-        <h2>Zugriff verweigert</h2>
-        <input type="password" id="pw-input" placeholder="Passwort eingeben...">
-        <br>
-        <button onclick="unlock()">Entsperren</button>
-    </div>
-</div>
+<div class="bg-grid"></div>
 
 <header>
     <h1>MEDIEN<span>SPEICHER</span></h1>
@@ -176,23 +119,23 @@
 
 <div class="container">
     <section>
-        <h2>Main Directory</h2>
-        <div id="gallery-main" class="gallery"></div>
+        <h2>🖼️ Hauptordner</h2>
+        <div id="gal-main" class="gallery"></div>
     </section>
 
     <section>
-        <h2>Folder: Jason</h2>
-        <div id="gallery-jason" class="gallery"></div>
+        <h2>📁 Jason</h2>
+        <div id="gal-jason" class="gallery"></div>
     </section>
 
     <section>
-        <h2>Folder: Kev</h2>
-        <div id="gallery-kev" class="gallery"></div>
+        <h2>📁 Kev</h2>
+        <div id="gal-kev" class="gallery"></div>
     </section>
 
     <section>
-        <h2>Folder: MC Server</h2>
-        <div id="gallery-mc" class="gallery"></div>
+        <h2>⛏️ MC Server</h2>
+        <div id="gal-mc" class="gallery"></div>
     </section>
 </div>
 
@@ -201,68 +144,47 @@
 </div>
 
 <script>
-    // 1. LOGIN LOGIK
-    function unlock() {
-        const pw = document.getElementById('pw-input').value;
-        if(pw === "MSPR2026") {
-            document.getElementById('login-screen').style.display = 'none';
-        } else {
-            alert("Falsch!");
-        }
-    }
+    // BASIS-PFAD (Hier liegen alle deine Bilder)
+    const base = "Bilder/";
 
-    // 2. DIE DATEILISTE (Hier pflegst du deine Bilder ein)
-    // Damit es "automatisch" wirkt, habe ich hier EXAKT deine Screenshot-Dateien eingetragen.
+    // DATEILISTEN
     const files = {
-        main: [
-            "Jamon.jpg", "Medienspeicher.png", "TTT.png", 
-            "ZevKev.png", "bello.jpg", "neues icon.png"
-        ],
-        jason: [
-            "Jason/Banner new jpeg.jpg", "Jason/Park.jpg", "Jason/Video BG Jamon.png", 
-            "Jason/YT.jpg", "Jason/dis.jpg", "Jason/frei.jpg"
-        ],
-        kev: [
-            "kev/1760363756349.png", "kev/Banner new jpeg.jpg", 
-            "kev/Video BG.png", "kev/neues icon.png"
-        ],
-        mc: [
-            "mcserver/DeathSwap.png", "mcserver/Fortune.png", "mcserver/Survival.png", 
-            "mcserver/TTT.png", "mcserver/Temp.png", "mcserver/TheBridge.png", 
-            "mcserver/itemchaos.png", "mcserver/kitpvp.png"
-        ]
+        main: ["Jamon.jpg", "Medienspeicher.png", "TTT.png", "ZevKev.png", "bello.jpg", "neues icon.png"],
+        jason: ["Jason/Banner new jpeg.jpg", "Jason/Park.jpg", "Jason/Video BG Jamon.png", "Jason/YT.jpg", "Jason/dis.jpg", "Jason/frei.jpg"],
+        kev: ["kev/1760363756349.png", "kev/Banner new jpeg.jpg", "kev/Video BG.png", "kev/neues icon.png"],
+        mc: ["mcserver/DeathSwap.png", "mcserver/Fortune.png", "mcserver/Survival.png", "mcserver/TTT.png", "mcserver/Temp.png", "mcserver/TheBridge.png", "mcserver/itemchaos.png", "mcserver/kitpvp.png"]
     };
 
-    // 3. GENERIERUNGS LOGIK
-    function renderGallery(list, elementId) {
+    function load(list, elementId) {
         const container = document.getElementById(elementId);
-        list.forEach(fileName => {
+        list.forEach(name => {
             const card = document.createElement('div');
-            card.className = 'img-card';
+            card.className = 'card';
             
-            // encodeURI ist extrem wichtig für Leerzeichen in Dateinamen!
-            const safePath = encodeURI(fileName);
-            
+            // WICHTIG: base + name ergibt "Bilder/Ordner/Datei.png"
+            const fullPath = base + name;
+            const encodedPath = encodeURI(fullPath);
+
             card.innerHTML = `
-                <img src="${safePath}" loading="lazy" onerror="this.parentElement.style.display='none'">
-                <div class="img-info">${fileName.split('/').pop()}</div>
+                <img src="${encodedPath}" loading="lazy" onerror="console.log('Fehler bei: ' + this.src); this.parentElement.style.display='none'">
+                <div class="info">${name.split('/').pop()}</div>
             `;
-            
+
             card.onclick = () => {
-                document.getElementById('lb-img').src = safePath;
+                document.getElementById('lb-img').src = encodedPath;
                 document.getElementById('lightbox').style.display = 'flex';
             };
-            
+
             container.appendChild(card);
         });
     }
 
-    // Ausführen
-    renderGallery(files.main, 'gallery-main');
-    renderGallery(files.jason, 'gallery-jason');
-    renderGallery(files.kev, 'gallery-kev');
-    renderGallery(files.mc, 'gallery-mc');
-
+    // Galerien befüllen
+    load(files.main, 'gal-main');
+    load(files.jason, 'gal-jason');
+    load(files.kev, 'gal-kev');
+    load(files.mc, 'gal-mc');
 </script>
+
 </body>
 </html>
