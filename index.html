@@ -7,30 +7,119 @@
 <link id="dynamic-favicon" rel="icon" href="">
 
 <style>
-:root {
-    --bg-dark: linear-gradient(135deg, #1b1b2f, #2d2d5a);
-    --bg-light: linear-gradient(135deg, #eef2ff, #fde68a);
-    --card-dark: rgba(0,0,0,0.45);
-    --card-light: rgba(255,255,255,0.65);
-    --text-dark: #fff;
-    --text-light: #111;
-    --accent: #7c7cff;
+
+/* --------------------------------------------------
+   PASSWORD SCREEN
+-------------------------------------------------- */
+#login-screen {
+    position: fixed;
+    inset: 0;
+    background: #111;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: "Segoe UI", sans-serif;
+    z-index: 99999;
 }
 
-body {
+#login-box {
+    background: rgba(255,255,255,0.08);
+    padding: 40px;
+    border-radius: 18px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 25px rgba(0,0,0,0.4);
+    text-align: center;
+}
+
+#login-box input {
+    padding: 12px 18px;
+    border-radius: 12px;
+    border: none;
+    width: 220px;
+    margin-top: 10px;
+    font-size: 1.1em;
+    outline: none;
+    text-align: center;
+}
+
+#login-box button {
+    margin-top: 18px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    border: none;
+    background: #7c7cff;
+    color: white;
+    font-size: 1.1em;
+    cursor: pointer;
+}
+
+/* --------------------------------------------------
+   BLUEPRINT BACKGROUND (from test.html)
+-------------------------------------------------- */
+
+html, body {
     margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #2a2a2a;
     font-family: "Segoe UI", Arial, sans-serif;
-    background: var(--bg-dark);
-    color: var(--text-dark);
-    transition: background 0.8s, color 0.8s;
+    color: white;
 }
 
-body.light {
-    background: var(--bg-light);
-    color: var(--text-light);
+.blueprint-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
 }
 
-/* Header */
+.texture, .grid-fine, .grid-bold, .vignette {
+    position: absolute;
+    inset: 0;
+}
+
+.texture {
+    background:
+        repeating-linear-gradient(0deg,
+            rgba(255,255,255,0.01) 0px,
+            rgba(255,255,255,0.01) 2px,
+            rgba(0,0,0,0.02) 4px);
+    mix-blend-mode: overlay;
+    animation: drift 22s linear infinite;
+}
+
+.grid-fine {
+    background-size: 40px 40px;
+    background-image:
+        linear-gradient(to right, rgba(200,200,200,0.2) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(200,200,200,0.2) 1px, transparent 1px);
+    animation: drift 50s linear infinite;
+}
+
+.grid-bold {
+    background-size: 200px 200px;
+    background-image:
+        linear-gradient(to right, rgba(220,220,220,0.3) 2px, transparent 2px),
+        linear-gradient(to bottom, rgba(220,220,220,0.3) 2px, transparent 2px);
+    animation: drift 90s linear infinite;
+}
+
+.vignette {
+    background: radial-gradient(circle at center,
+        rgba(0,0,0,0) 40%,
+        rgba(0,0,0,0.5) 100%);
+}
+
+@keyframes drift {
+    from { background-position: 0 0; }
+    to   { background-position: 600px 600px; }
+}
+
+/* --------------------------------------------------
+   GALLERY DESIGN
+-------------------------------------------------- */
+
 header {
     display: flex;
     justify-content: space-between;
@@ -38,62 +127,42 @@ header {
     padding: 22px 35px;
 }
 
-header h1 {
-    margin: 0;
-    font-size: 2.2em;
-}
-
 .controls {
     display: flex;
     gap: 18px;
-    font-size: 1.4em;
     cursor: pointer;
-    user-select: none;
+    font-size: 1.5em;
 }
 
-/* Sections */
 section {
     max-width: 1500px;
     margin: auto;
-    padding: 10px 35px 50px;
+    padding: 30px 35px 50px;
 }
 
 section h2 {
-    margin: 35px 0 18px;
-    font-size: 1.8em;
-    border-left: 5px solid var(--accent);
+    border-left: 5px solid #7c7cff;
     padding-left: 15px;
 }
 
-/* Masonry */
 .masonry {
     column-count: 4;
     column-gap: 26px;
 }
 
-@media (max-width: 1200px) {
-    .masonry { column-count: 3; }
-}
-@media (max-width: 800px) {
-    .masonry { column-count: 2; }
-}
-@media (max-width: 500px) {
-    .masonry { column-count: 1; }
-}
+@media (max-width: 1200px) { .masonry { column-count: 3; } }
+@media (max-width: 800px)  { .masonry { column-count: 2; } }
+@media (max-width: 500px)  { .masonry { column-count: 1; } }
 
 .card {
     break-inside: avoid;
     margin-bottom: 26px;
     border-radius: 18px;
     overflow: hidden;
-    background: var(--card-dark);
+    background: rgba(0,0,0,0.45);
     backdrop-filter: blur(8px);
     cursor: pointer;
-    transition: transform 0.4s, box-shadow 0.4s;
-}
-
-body.light .card {
-    background: var(--card-light);
+    transition: transform .4s, box-shadow .4s;
 }
 
 .card:hover {
@@ -104,14 +173,13 @@ body.light .card {
 .card img {
     width: 100%;
     display: block;
-    transition: transform 0.6s ease;
+    transition: transform .6s ease;
 }
 
 .card:hover img {
     transform: scale(1.1);
 }
 
-/* Overlay */
 .overlay {
     padding: 14px 16px;
     background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
@@ -119,7 +187,6 @@ body.light .card {
 
 .title {
     font-weight: 600;
-    font-size: 1.05em;
 }
 
 /* Lightbox */
@@ -132,20 +199,35 @@ body.light .card {
     align-items: center;
     z-index: 999;
 }
-
-.lightbox.active {
-    display: flex;
-}
-
+.lightbox.active { display: flex; }
 .lightbox img {
     max-width: 92%;
     max-height: 92%;
     border-radius: 20px;
 }
+
 </style>
 </head>
 
 <body>
+
+<!-- PASSWORD -->
+<div id="login-screen">
+    <div id="login-box">
+        <h2>🔒 Passwort erforderlich</h2>
+        <input type="password" id="pw" placeholder="Passwort">
+        <br>
+        <button onclick="checkPW()">Login</button>
+    </div>
+</div>
+
+<!-- BACKGROUND -->
+<div class="blueprint-bg">
+    <div class="texture"></div>
+    <div class="grid-fine"></div>
+    <div class="grid-bold"></div>
+    <div class="vignette"></div>
+</div>
 
 <header>
     <h1>📸 Medienspeicher</h1>
@@ -157,12 +239,12 @@ body.light .card {
 
 <section>
     <h2>🖼️ Galerie</h2>
-    <div class="masonry" id="gallery-main"></div>
+    <div id="gallery-main" class="masonry"></div>
 </section>
 
 <section>
-    <h2>⛏️ MC-Server</h2>
-    <div class="masonry" id="gallery-mc"></div>
+    <h2>⛏️ MC Server</h2>
+    <div id="gallery-mc" class="masonry"></div>
 </section>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
@@ -170,28 +252,76 @@ body.light .card {
 </div>
 
 <script>
-const endungen = ["png","jpg","jpeg","webp"];
-const mainNames = ["bello","Jamon","Medienspeicher","ZevKev"];
-const mcNames = ["DeathSwap","Survival","Temp","itemchaos","kitpvp","TTT","Fortune","TheBridge"];
 
-let allImages = [];
-let slideshowIndex = 0;
-let slideshowTimer = null;
+/* -------------------------------------------
+   PASSWORD
+------------------------------------------- */
 
-/* Titel aus Dateiname */
-function prettify(name) {
-    return name
-        .replace(/[-_]/g, " ")
-        .replace(/\b\w/g, c => c.toUpperCase());
+function checkPW() {
+    const pw = document.getElementById("pw").value;
+    if (pw === "MSPR2026") {
+        document.getElementById("login-screen").style.display = "none";
+    } else {
+        alert("Falsches Passwort");
+    }
 }
 
-function loadImage(path, name, container) {
+/* --------------------------------------------------
+   ALL IMAGE PATHS (OLD + NEW)
+-------------------------------------------------- */
+
+const endungen = ["png","jpg","jpeg","webp"];
+
+/* Root directory images */
+const rootImages = [
+    "Jamon",
+    "Medienspeicher",
+    "TTT",
+    "ZevKev",
+    "bello",
+    "neues icon"
+];
+
+/* Jason folder */
+const jasonImages = [
+    "Jason/Banner new jpeg",
+    "Jason/dis",
+    "Jason/frei",
+    "Jason/Park",
+    "Jason/Video BG Jamon",
+    "Jason/YT"
+];
+
+/* kev folder */
+const kevImages = [
+    "kev/1760363756349",
+    "kev/Banner new jpeg",
+    "kev/neues icon",
+    "kev/Video BG"
+];
+
+/* mcserver folder (use all old entries) */
+const mcImages = [
+    "mcserver/DeathSwap",
+    "mcserver/Survival",
+    "mcserver/Temp",
+    "mcserver/itemchaos",
+    "mcserver/kitpvp",
+    "mcserver/TTT",
+    "mcserver/Fortune",
+    "mcserver/TheBridge"
+];
+
+const allImages = [];
+
+/* Image loader */
+function loadImage(fullPath, container) {
     let i = 0;
     const img = new Image();
 
     function tryNext() {
         if (i >= endungen.length) return;
-        img.src = `${path}${name}.${endungen[i++]}`;
+        img.src = fullPath + "." + endungen[i++];
     }
 
     img.onload = () => {
@@ -201,7 +331,9 @@ function loadImage(path, name, container) {
 
         const overlay = document.createElement("div");
         overlay.className = "overlay";
-        overlay.innerHTML = `<div class="title">${prettify(name)}</div>`;
+
+        let title = fullPath.split("/").pop().replace(/[_-]/g," ");
+        overlay.innerHTML = `<div class="title">${title}</div>`;
 
         card.appendChild(img);
         card.appendChild(overlay);
@@ -214,33 +346,49 @@ function loadImage(path, name, container) {
     tryNext();
 }
 
-mainNames.forEach(n => loadImage("Bilder/", n, document.getElementById("gallery-main")));
-mcNames.forEach(n => loadImage("Bilder/mcserver/", n, document.getElementById("gallery-mc")));
+function loadList(list, container) {
+    list.forEach(path => loadImage(path, container));
+}
 
-/* Lightbox */
+/* Load everything */
+loadList(rootImages, document.getElementById("gallery-main"));
+loadList(jasonImages, document.getElementById("gallery-main"));
+loadList(kevImages, document.getElementById("gallery-main"));
+loadList(mcImages, document.getElementById("gallery-mc"));
+
+/* -------------------------------------------
+   LIGHTBOX
+------------------------------------------- */
+
 function openLightbox(src) {
     document.getElementById("lightbox-img").src = src;
     document.getElementById("lightbox").classList.add("active");
 }
-
 function closeLightbox() {
     document.getElementById("lightbox").classList.remove("active");
     stopSlideshow();
 }
 
-/* Slideshow */
+/* -------------------------------------------
+   SLIDESHOW
+------------------------------------------- */
+
+let slideIndex = 0;
+let slideTimer = null;
+
 function startSlideshow() {
     if (!allImages.length) return;
-    slideshowIndex = 0;
+    slideIndex = 0;
     openLightbox(allImages[0]);
-    slideshowTimer = setInterval(() => {
-        slideshowIndex = (slideshowIndex + 1) % allImages.length;
-        document.getElementById("lightbox-img").src = allImages[slideshowIndex];
+
+    slideTimer = setInterval(() => {
+        slideIndex = (slideIndex + 1) % allImages.length;
+        document.getElementById("lightbox-img").src = allImages[slideIndex];
     }, 3000);
 }
 
 function stopSlideshow() {
-    clearInterval(slideshowTimer);
+    clearInterval(slideTimer);
 }
 
 /* Theme */
@@ -248,25 +396,17 @@ function toggleTheme() {
     document.body.classList.toggle("light");
 }
 
-/* Favicon */
-function setRandomFavicon() {
-    if (!allImages.length) {
-        setTimeout(setRandomFavicon, 200);
-        return;
+/* Set random favicon */
+setTimeout(() => {
+    if (allImages.length) {
+        document.getElementById("dynamic-favicon").href =
+            allImages[Math.floor(Math.random()*allImages.length)];
     }
-    document.getElementById("dynamic-favicon").href =
-        allImages[Math.floor(Math.random() * allImages.length)];
-}
-setRandomFavicon();
+}, 2500);
 
-/* ESC */
-document.addEventListener("keydown", e => {
-    if (e.key === "Escape") closeLightbox();
-});
 </script>
 
 </body>
 </html>
-</body>
 </html>
 
