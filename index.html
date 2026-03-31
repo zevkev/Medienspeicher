@@ -1,244 +1,177 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>Medienspeicher Galerie</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link id="dynamic-favicon" rel="icon" href="">
+    <meta charset="UTF-8">
+    <title>Medienspeicher Galerie</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link id="dynamic-favicon" rel="icon" href="">
 
-<style>
+    <style>
+        /* CSS bleibt größtenteils gleich, kleine Fixes für die Anzeige */
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            background: #111;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: "Segoe UI", sans-serif;
+            z-index: 99999;
+        }
 
-/* --------------------------------------------------
-   PASSWORD SCREEN
--------------------------------------------------- */
-#login-screen {
-    position: fixed;
-    inset: 0;
-    background: #111;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    font-family: "Segoe UI", sans-serif;
-    z-index: 99999;
-}
+        #login-box {
+            background: rgba(255,255,255,0.08);
+            padding: 40px;
+            border-radius: 18px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 25px rgba(0,0,0,0.4);
+            text-align: center;
+        }
 
-#login-box {
-    background: rgba(255,255,255,0.08);
-    padding: 40px;
-    border-radius: 18px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 0 25px rgba(0,0,0,0.4);
-    text-align: center;
-}
+        #login-box input {
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: none;
+            width: 220px;
+            margin-top: 10px;
+            font-size: 1.1em;
+            outline: none;
+            text-align: center;
+        }
 
-#login-box input {
-    padding: 12px 18px;
-    border-radius: 12px;
-    border: none;
-    width: 220px;
-    margin-top: 10px;
-    font-size: 1.1em;
-    outline: none;
-    text-align: center;
-}
+        #login-box button {
+            margin-top: 18px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: none;
+            background: #7c7cff;
+            color: white;
+            font-size: 1.1em;
+            cursor: pointer;
+        }
 
-#login-box button {
-    margin-top: 18px;
-    padding: 12px 20px;
-    border-radius: 12px;
-    border: none;
-    background: #7c7cff;
-    color: white;
-    font-size: 1.1em;
-    cursor: pointer;
-}
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            background: #1a1a1a;
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: white;
+        }
 
-/* --------------------------------------------------
-   BLUEPRINT BACKGROUND (from test.html)
--------------------------------------------------- */
+        .blueprint-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: #111;
+        }
 
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    background: #2a2a2a;
-    font-family: "Segoe UI", Arial, sans-serif;
-    color: white;
-}
+        .grid-fine {
+            position: absolute;
+            inset: 0;
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+        }
 
-.blueprint-bg {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-}
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px 35px;
+        }
 
-.texture, .grid-fine, .grid-bold, .vignette {
-    position: absolute;
-    inset: 0;
-}
+        section {
+            max-width: 1500px;
+            margin: auto;
+            padding: 30px 35px 50px;
+        }
 
-.texture {
-    background:
-        repeating-linear-gradient(0deg,
-            rgba(255,255,255,0.01) 0px,
-            rgba(255,255,255,0.01) 2px,
-            rgba(0,0,0,0.02) 4px);
-    mix-blend-mode: overlay;
-    animation: drift 22s linear infinite;
-}
+        section h2 {
+            border-left: 5px solid #7c7cff;
+            padding-left: 15px;
+            margin-bottom: 25px;
+        }
 
-.grid-fine {
-    background-size: 40px 40px;
-    background-image:
-        linear-gradient(to right, rgba(200,200,200,0.2) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(200,200,200,0.2) 1px, transparent 1px);
-    animation: drift 50s linear infinite;
-}
+        .masonry {
+            column-count: 4;
+            column-gap: 26px;
+        }
 
-.grid-bold {
-    background-size: 200px 200px;
-    background-image:
-        linear-gradient(to right, rgba(220,220,220,0.3) 2px, transparent 2px),
-        linear-gradient(to bottom, rgba(220,220,220,0.3) 2px, transparent 2px);
-    animation: drift 90s linear infinite;
-}
+        @media (max-width: 1200px) { .masonry { column-count: 3; } }
+        @media (max-width: 800px)  { .masonry { column-count: 2; } }
+        @media (max-width: 500px)  { .masonry { column-count: 1; } }
 
-.vignette {
-    background: radial-gradient(circle at center,
-        rgba(0,0,0,0) 40%,
-        rgba(0,0,0,0.5) 100%);
-}
+        .card {
+            break-inside: avoid;
+            margin-bottom: 26px;
+            border-radius: 18px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(8px);
+            cursor: pointer;
+            transition: transform .4s, box-shadow .4s;
+        }
 
-@keyframes drift {
-    from { background-position: 0 0; }
-    to   { background-position: 600px 600px; }
-}
+        .card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
 
-/* --------------------------------------------------
-   GALLERY DESIGN
--------------------------------------------------- */
+        .card img {
+            width: 100%;
+            display: block;
+        }
 
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 22px 35px;
-}
+        .overlay {
+            padding: 12px;
+            background: rgba(0,0,0,0.6);
+            font-size: 0.9em;
+            text-align: center;
+        }
 
-.controls {
-    display: flex;
-    gap: 18px;
-    cursor: pointer;
-    font-size: 1.5em;
-}
-
-section {
-    max-width: 1500px;
-    margin: auto;
-    padding: 30px 35px 50px;
-}
-
-section h2 {
-    border-left: 5px solid #7c7cff;
-    padding-left: 15px;
-}
-
-.masonry {
-    column-count: 4;
-    column-gap: 26px;
-}
-
-@media (max-width: 1200px) { .masonry { column-count: 3; } }
-@media (max-width: 800px)  { .masonry { column-count: 2; } }
-@media (max-width: 500px)  { .masonry { column-count: 1; } }
-
-.card {
-    break-inside: avoid;
-    margin-bottom: 26px;
-    border-radius: 18px;
-    overflow: hidden;
-    background: rgba(0,0,0,0.45);
-    backdrop-filter: blur(8px);
-    cursor: pointer;
-    transition: transform .4s, box-shadow .4s;
-}
-
-.card:hover {
-    transform: translateY(-6px) scale(1.03);
-    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
-}
-
-.card img {
-    width: 100%;
-    display: block;
-    transition: transform .6s ease;
-}
-
-.card:hover img {
-    transform: scale(1.1);
-}
-
-.overlay {
-    padding: 14px 16px;
-    background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
-}
-
-.title {
-    font-weight: 600;
-}
-
-/* Lightbox */
-.lightbox {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.9);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-}
-.lightbox.active { display: flex; }
-.lightbox img {
-    max-width: 92%;
-    max-height: 92%;
-    border-radius: 20px;
-}
-
-</style>
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+        }
+        .lightbox.active { display: flex; }
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+    </style>
 </head>
-
 <body>
 
-<!-- PASSWORD -->
 <div id="login-screen">
     <div id="login-box">
         <h2>🔒 Passwort erforderlich</h2>
-        <input type="password" id="pw" placeholder="Passwort">
+        <input type="password" id="pw" placeholder="Passwort" onkeydown="if(event.key==='Enter') checkPW()">
         <br>
         <button onclick="checkPW()">Login</button>
     </div>
 </div>
 
-<!-- BACKGROUND -->
 <div class="blueprint-bg">
-    <div class="texture"></div>
     <div class="grid-fine"></div>
-    <div class="grid-bold"></div>
-    <div class="vignette"></div>
 </div>
 
 <header>
     <h1>📸 Medienspeicher</h1>
-    <div class="controls">
-        <div onclick="toggleTheme()">🌙</div>
-        <div onclick="startSlideshow()">▶️</div>
-    </div>
+    <div style="cursor:pointer; font-size: 1.5em;" onclick="startSlideshow()">▶️ Slideshow</div>
 </header>
 
 <section>
-    <h2>🖼️ Galerie</h2>
+    <h2>🖼️ Hauptgalerie</h2>
     <div id="gallery-main" class="masonry"></div>
 </section>
 
@@ -248,15 +181,11 @@ section h2 {
 </section>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-    <img id="lightbox-img">
+    <img id="lightbox-img" src="">
 </div>
 
 <script>
-
-/* -------------------------------------------
-   PASSWORD
-------------------------------------------- */
-
+/* --- PASSWORT --- */
 function checkPW() {
     const pw = document.getElementById("pw").value;
     if (pw === "MSPR2026") {
@@ -266,147 +195,85 @@ function checkPW() {
     }
 }
 
-/* --------------------------------------------------
-   ALL IMAGE PATHS (OLD + NEW)
--------------------------------------------------- */
+/* --- DATEILISTEN (basierend auf deinen Screenshots) --- */
+const extensions = ["png", "jpg", "jpeg", "webp"];
 
-const endungen = ["png","jpg","jpeg","webp"];
+const rootFiles = ["Jamon", "Medienspeicher", "TTT", "ZevKev", "bello", "neues icon"];
+const jasonFiles = ["Jason/Banner new jpeg", "Jason/Park", "Jason/Video BG Jamon", "Jason/YT", "Jason/dis", "Jason/frei"];
+const kevFiles = ["kev/1760363756349", "kev/Banner new jpeg", "kev/Video BG", "kev/neues icon"];
+const mcFiles = ["mcserver/DeathSwap", "mcserver/Fortune", "mcserver/Survival", "mcserver/TTT", "mcserver/Temp", "mcserver/TheBridge", "mcserver/itemchaos", "mcserver/kitpvp"];
 
-/* Root directory images */
-const rootImages = [
-    "Jamon",
-    "Medienspeicher",
-    "TTT",
-    "ZevKev",
-    "bello",
-    "neues icon"
-];
+let allLoadedImages = [];
 
-/* Jason folder */
-const jasonImages = [
-    "Jason/Banner new jpeg",
-    "Jason/dis",
-    "Jason/frei",
-    "Jason/Park",
-    "Jason/Video BG Jamon",
-    "Jason/YT"
-];
+/* --- LADE-FUNKTION --- */
+function tryLoadImage(basePath, containerId) {
+    const container = document.getElementById(containerId);
+    let attempt = 0;
 
-/* kev folder */
-const kevImages = [
-    "kev/1760363756349",
-    "kev/Banner new jpeg",
-    "kev/neues icon",
-    "kev/Video BG"
-];
+    function next() {
+        if (attempt >= extensions.length) return;
+        
+        const ext = extensions[attempt];
+        const fullPath = `${basePath}.${ext}`;
+        const img = new Image();
+        
+        // encodeURI fix für Leerzeichen im Dateinamen
+        img.src = encodeURI(fullPath);
 
-/* mcserver folder (use all old entries) */
-const mcImages = [
-    "mcserver/DeathSwap",
-    "mcserver/Survival",
-    "mcserver/Temp",
-    "mcserver/itemchaos",
-    "mcserver/kitpvp",
-    "mcserver/TTT",
-    "mcserver/Fortune",
-    "mcserver/TheBridge"
-];
+        img.onload = () => {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.onclick = () => openLightbox(img.src);
+            
+            const titleText = basePath.split('/').pop().replace(/[_-]/g, " ");
+            card.innerHTML = `<img src="${img.src}"><div class="overlay">${titleText}</div>`;
+            
+            container.appendChild(card);
+            allLoadedImages.push(img.src);
+        };
 
-const allImages = [];
-
-/* Image loader */
-function loadImage(fullPath, container) {
-    let i = 0;
-    const img = new Image();
-
-    function tryNext() {
-        if (i >= endungen.length) return;
-        img.src = fullPath + "." + endungen[i++];
+        img.onerror = () => {
+            attempt++;
+            next();
+        };
     }
-
-    img.onload = () => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.onclick = () => openLightbox(img.src);
-
-        const overlay = document.createElement("div");
-        overlay.className = "overlay";
-
-        let title = fullPath.split("/").pop().replace(/[_-]/g," ");
-        overlay.innerHTML = `<div class="title">${title}</div>`;
-
-        card.appendChild(img);
-        card.appendChild(overlay);
-        container.appendChild(card);
-
-        allImages.push(img.src);
-    };
-
-    img.onerror = tryNext;
-    tryNext();
+    next();
 }
 
-function loadList(list, container) {
-    list.forEach(path => loadImage(path, container));
-}
+/* --- INITIALISIERUNG --- */
+rootFiles.forEach(f => tryLoadImage(f, "gallery-main"));
+jasonFiles.forEach(f => tryLoadImage(f, "gallery-main"));
+kevFiles.forEach(f => tryLoadImage(f, "gallery-main"));
+mcFiles.forEach(f => tryLoadImage(f, "gallery-mc"));
 
-/* Load everything */
-loadList(rootImages, document.getElementById("gallery-main"));
-loadList(jasonImages, document.getElementById("gallery-main"));
-loadList(kevImages, document.getElementById("gallery-main"));
-loadList(mcImages, document.getElementById("gallery-mc"));
-
-/* -------------------------------------------
-   LIGHTBOX
-------------------------------------------- */
-
+/* --- LIGHTBOX & SLIDESHOW --- */
 function openLightbox(src) {
-    document.getElementById("lightbox-img").src = src;
-    document.getElementById("lightbox").classList.add("active");
+    const lb = document.getElementById("lightbox");
+    const lbImg = document.getElementById("lightbox-img");
+    lbImg.src = src;
+    lb.classList.add("active");
 }
+
 function closeLightbox() {
     document.getElementById("lightbox").classList.remove("active");
     stopSlideshow();
 }
 
-/* -------------------------------------------
-   SLIDESHOW
-------------------------------------------- */
-
-let slideIndex = 0;
-let slideTimer = null;
-
+let slideInterval;
 function startSlideshow() {
-    if (!allImages.length) return;
-    slideIndex = 0;
-    openLightbox(allImages[0]);
-
-    slideTimer = setInterval(() => {
-        slideIndex = (slideIndex + 1) % allImages.length;
-        document.getElementById("lightbox-img").src = allImages[slideIndex];
+    if (allLoadedImages.length === 0) return;
+    let i = 0;
+    openLightbox(allLoadedImages[i]);
+    slideInterval = setInterval(() => {
+        i = (i + 1) % allLoadedImages.length;
+        document.getElementById("lightbox-img").src = allLoadedImages[i];
     }, 3000);
 }
 
 function stopSlideshow() {
-    clearInterval(slideTimer);
+    clearInterval(slideInterval);
 }
-
-/* Theme */
-function toggleTheme() {
-    document.body.classList.toggle("light");
-}
-
-/* Set random favicon */
-setTimeout(() => {
-    if (allImages.length) {
-        document.getElementById("dynamic-favicon").href =
-            allImages[Math.floor(Math.random()*allImages.length)];
-    }
-}, 2500);
-
 </script>
 
 </body>
 </html>
-</html>
-
