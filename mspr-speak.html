@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>MSPR - Ultimate TTS Control</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+        :root {
+            --accent: #9147ff;
+            --bg: #0e0e10;
+            --card: #18181b;
+            --border: #303032;
+            --text: #efeff1;
+            --red: #ff4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            height: 50px;
+            padding: 0 20px;
+            background: var(--card);
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .logo { display: flex; align-items: center; gap: 10px; }
+        .logo img { height: 30px; border-radius: 4px; }
+        .logo h1 { font-size: 16px; font-weight: 800; margin: 0; letter-spacing: 1px; }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 15px;
+            padding: 15px;
+            height: calc(100vh - 50px);
+            box-sizing: border-box;
+        }
+
+        .sidebar { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+        .panel { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 12px; }
+        
+        h3 { font-size: 10px; text-transform: uppercase; color: #adadb8; margin: 0 0 10px 0; letter-spacing: 1px; }
+
+        input, select, button {
+            background: #000; border: 1px solid var(--border); color: #fff;
+            padding: 8px; border-radius: 6px; width: 100%; margin-bottom: 8px; font-family: inherit; font-size: 12px;
+        }
+
+        button { background: var(--accent); border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #772ce8; }
+
+        .control-group { margin-bottom: 10px; }
+        .control-group label { display: flex; justify-content: space-between; font-size: 10px; color: #adadb8; margin-bottom: 4px; }
+
+        input[type="range"] { appearance: none; background: var(--border); height: 4px; border-radius: 2px; accent-color: var(--accent); }
+
+        #chat-log {
+            flex-grow: 1; background: #070708; border-radius: 10px; border: 1px solid var(--border);
+            padding: 12px; overflow-y: auto; display: flex; flex-direction: column;
+        }
+
+        .msg {
+            background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 6px;
+            margin-bottom: 6px; font-size: 13px; border-left: 3px solid var(--accent);
+            animation: fadeIn 0.2s ease;
+            word-wrap: break-word;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(5px); } to { opacity: 1; } }
+        .u-name { font-weight: 700; color: var(--accent); }
+        .filter-tag { display: inline-block; background: #222; padding: 2px 6px; border-radius: 4px; font-size: 9px; margin: 2px; cursor: pointer; border: 1px solid #333; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <img src="https://zevkev.github.io/Medienspeicher/Bilder/Medienspeicher.png">
+        <h1>MSPR <span id="ui-title" style="color:var(--accent)">TTS</span></h1>
+    </div>
+    <div id="status" style="font-size: 10px; color: #555; font-weight: 800;">OFFLINE</div>
+</header>
+
+<div class="dashboard">
+    <div class="sidebar">
+        <div class="panel">
+            <h3 id="ui-h-lang">Sprache / Language</h3>
+            <select id="lang-select" onchange="changeLanguage()">
+                <option value="de-DE">Deutsch (DE)</option>
+                <option value="en-US">English (US)</option>
+            </select>
+        </div>
+
+        <div class="panel">
+            <h3 id="ui-h-conn">Twitch</h3>
+            <input type="text" id="channel" placeholder="Channel...">
+            <button id="connectBtn">START</button>
+        </div>
+
+        <div class="panel">
+            <h3 id="ui-h-audio">Audio Setup</h3>
+            <div class="control-group">
+                <label id="ui-l-prov">Provider</label>
+                <select id="provider">
+                    <option value="google">Google</option>
+                    <option value="microsoft">Microsoft</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label id="ui-l-vol">Lautstärke</label>
+                <input type="range" id="vol" min="0" max="1" step="0.01" value="0.8">
+            </div>
+            <div class="control-group">
+                <label id="ui-l-max">Max. Zeichen</label>
+                <input type="range" id="maxLen" min="10" max="500" step="10" value="150">
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3 id="ui-h-filt">Bad Words</h3>
+            <input type="text" id="filterIn" placeholder="+ Wort">
+            <div id="filter-list"></div>
+        </div>
+    </div>
+
+    <div id="chat-log"></div>
+</div>
+
+<script>
+    let socket;
+    let queue = [];
+    let isSpeaking = false;
+    let filters = JSON.parse(localStorage.getItem('mspr_filters')) || [];
+    const MAX_CHAT_MESSAGES = 50; // Performance Limit
+    const synth = window.speechSynthesis;
+
+    const translations = {
+        "de-DE": { title: "DEUTSCH", h_lang: "Sprache", h_conn: "Verbindung", h_audio: "Audio Setup", l_prov: "Anbieter", l_vol: "Lautstärke", l_max: "Max. Länge", h_filt: "Filter", status: "ONLINE", btn: "VERBINDEN" },
+        "en-US": { title: "ENGLISH", h_lang: "Language", h_conn: "Connection", h_audio: "Audio Settings", l_prov: "Provider", l_vol: "Volume", l_max: "Max Length", h_filt: "Bad Words", status: "ONLINE", btn: "CONNECT" }
+    };
+
+    function changeLanguage() {
+        const l = document.getElementById('lang-select').value;
+        const t = translations[l] || translations["en-US"];
+        document.getElementById('ui-title').innerText = t.title;
+        document.getElementById('ui-h-lang').innerText = t.h_lang;
+        document.getElementById('ui-h-conn').innerText = t.h_conn;
+        document.getElementById('ui-h-audio').innerText = t.h_audio;
+        document.getElementById('ui-l-prov').innerText = t.l_prov;
+        document.getElementById('ui-l-vol').innerText = t.l_vol;
+        document.getElementById('ui-l-max').innerText = t.l_max;
+        document.getElementById('ui-h-filt').innerText = t.h_filt;
+        document.getElementById('connectBtn').innerText = t.btn;
+    }
+
+    function renderFilters() {
+        document.getElementById('filter-list').innerHTML = filters.map(f => `<span class="filter-tag" onclick="removeFilter('${f}')">${f} ✕</span>`).join('');
+    }
+    renderFilters();
+
+    document.getElementById('filterIn').onkeydown = (e) => {
+        if(e.key === 'Enter' && e.target.value) {
+            filters.push(e.target.value.toLowerCase().trim());
+            e.target.value = '';
+            localStorage.setItem('mspr_filters', JSON.stringify(filters));
+            renderFilters();
+        }
+    };
+
+    function removeFilter(word) {
+        filters = filters.filter(f => f !== word);
+        localStorage.setItem('mspr_filters', JSON.stringify(filters));
+        renderFilters();
+    }
+
+    function speakNext() {
+        if (isSpeaking || queue.length === 0) return;
+        const current = queue.shift();
+        if (filters.some(f => current.text.toLowerCase().includes(f))) return speakNext();
+
+        isSpeaking = true;
+        const selectedLang = document.getElementById('lang-select').value;
+        const utter = new SpeechSynthesisUtterance(current.text.substring(0, document.getElementById('maxLen').value));
+        utter.lang = selectedLang;
+
+        let hash = 0;
+        for (let i = 0; i < current.user.length; i++) hash = ((hash << 5) - hash) + current.user.charCodeAt(i);
+        const h = Math.abs(hash);
+
+        const provider = document.getElementById('provider').value;
+        const voices = synth.getVoices().filter(v => v.lang.startsWith(selectedLang.split('-')[0]));
+        let filtered = voices;
+        if(provider === 'google') filtered = voices.filter(v => v.name.includes('Google'));
+        else if(provider === 'microsoft') filtered = voices.filter(v => v.name.includes('Microsoft'));
+
+        utter.voice = filtered[h % filtered.length] || voices[0];
+        utter.pitch = 0.5 + (h % 140) / 100;
+        utter.rate = 0.9 + (h % 30) / 100;
+        utter.volume = parseFloat(document.getElementById('vol').value);
+
+        utter.onend = () => { isSpeaking = false; setTimeout(speakNext, 50); };
+        utter.onerror = () => { isSpeaking = false; speakNext(); };
+        synth.speak(utter);
+    }
+
+    function addChat(user, text) {
+        const log = document.getElementById('chat-log');
+        
+        // --- PERFORMANCE CLEANUP ---
+        if (log.children.length >= MAX_CHAT_MESSAGES) {
+            log.removeChild(log.firstChild); // Löscht das älteste Element
+        }
+
+        const div = document.createElement('div');
+        div.className = 'msg';
+        div.innerHTML = `<span class="u-name">${user}:</span> ${text}`;
+        log.appendChild(div);
+        log.scrollTop = log.scrollHeight;
+
+        queue.push({ user, text });
+        speakNext();
+    }
+
+    document.getElementById('connectBtn').onclick = () => {
+        const chan = document.getElementById('channel').value.trim().toLowerCase();
+        if(!chan) return;
+        if(socket) socket.close();
+        socket = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+        socket.onopen = () => {
+            socket.send('PASS oauth:none');
+            socket.send('NICK justinfan' + Math.floor(Math.random()*1000));
+            socket.send('JOIN #' + chan);
+            const l = document.getElementById('lang-select').value;
+            document.getElementById('status').innerText = (translations[l]?.status || "ONLINE") + ": " + chan.toUpperCase();
+            document.getElementById('status').style.color = "#00ffa3";
+        };
+        socket.onmessage = (e) => {
+            if(e.data.startsWith('PING')) socket.send('PONG :tmi.twitch.tv');
+            const match = e.data.match(/:([^!]+)![^@]+@[^ ]+ PRIVMSG #[^ ]+ :(.+)/);
+            if(match) addChat(match[1], match[2].trim());
+        };
+    };
+
+    window.speechSynthesis.onvoiceschanged = () => synth.getVoices();
+    changeLanguage();
+</script>
+</body>
+</html>
