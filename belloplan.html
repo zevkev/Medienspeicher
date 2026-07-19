@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belloflo Streamplan Generator</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Rajdhani:wght@500;700&display=swap');
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js">
+    </script>
+
+    <style>
+        :root {
+            --bg-main: #050505;
+            --panel-bg: #101012;
+            --accent-red: #ff2a3d;
+            --text-light: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --glow: 0 0 20px rgba(255, 42, 61, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            background-image:
+                radial-gradient(circle at 15% 30%, rgba(255, 42, 61, 0.06), transparent 30%),
+                radial-gradient(circle at 80% 70%, rgba(255, 42, 61, 0.04), transparent 30%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+            font-family: 'Rajdhani', sans-serif;
+            color: var(--text-light);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 60px;
+            flex-wrap: wrap;
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Teko', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        /* ========== EDITOR PANEL ========== */
+        .editor-panel {
+            background: var(--panel-bg);
+            padding: 30px 25px;
+            width: 100%;
+            max-width: 420px;
+            border-left: 5px solid var(--accent-red);
+            clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+            box-shadow: 12px 12px 35px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .editor-panel h2 {
+            font-size: 2.6rem;
+            margin-bottom: 8px;
+            color: var(--accent-red);
+            text-shadow: 0 0 20px rgba(255, 42, 61, 0.4);
+            letter-spacing: 3px;
+        }
+
+        .editor-panel .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .format-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .format-btn {
+            flex: 1;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+            transition: all 0.3s ease;
+        }
+
+        .format-btn.active {
+            background: rgba(255, 42, 61, 0.15);
+            border-color: var(--accent-red);
+            color: var(--text-light);
+            box-shadow: 0 0 12px rgba(255, 42, 61, 0.2);
+        }
+
+        .format-btn:hover {
+            border-color: var(--accent-red);
+            color: var(--text-light);
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.015);
+            padding: 14px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            position: relative;
+        }
+
+        .input-group::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background: var(--accent-red);
+            opacity: 0.5;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 9px 12px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--accent-red);
+            box-shadow: 0 0 10px rgba(255, 42, 61, 0.2);
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-export {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 16px;
+            background: rgba(255, 42, 61, 0.08);
+            color: var(--text-light);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            border: 2px solid var(--accent-red);
+            clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+            cursor: pointer;
+            transition: all 0.35s ease;
+            margin-top: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-export::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 42, 61, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-export:hover::after {
+            left: 100%;
+        }
+        .btn-export:hover {
+            background: var(--accent-red);
+            box-shadow: var(--glow);
+            color: #fff;
+        }
+
+        /* ========== VORSCHAU / EXPORT-BEREICH ========== */
+        .preview-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .preview-label {
+            font-size: 1rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-family: 'Teko', sans-serif;
+        }
+
+        /* Der Container für den Export – mit Hintergrundfarbe und Clip-Path */
+        #download-target {
+            padding: 0;
+            background: var(--panel-bg);
+            display: inline-block;
+            clip-path: polygon(30px 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%, 0 30px);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+            line-height: 0;
+        }
+
+        .stream-card {
+            background: var(--panel-bg);
+            width: 580px;
+            padding: 45px 50px;
+            box-sizing: border-box;
+            border-left: 7px solid var(--accent-red);
+            position: relative;
+            line-height: normal;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+        }
+
+        .stream-card::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            bottom: 8px;
+            left: calc(7px + 8px);
+            border: 1px solid rgba(255, 42, 61, 0.12);
+            pointer-events: none;
+        }
+
+        .stream-card-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header-logo {
+            max-width: 380px;
+            width: 85%;
+            margin-bottom: 5px;
+            filter: drop-shadow(0 0 15px rgba(255, 42, 61, 0.35));
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stream-card-header h2 {
+            font-size: 1.8rem;
+            color: var(--text-muted);
+            letter-spacing: 5px;
+            margin-top: 8px;
+            font-family: 'Teko', sans-serif;
+        }
+
+        .tech-divider {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
+            position: relative;
+            margin-bottom: 35px;
+        }
+
+        .tech-divider::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 12px;
+            background: var(--accent-red);
+            clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 100%, 0 100%);
+        }
+
+        .schedule-list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 16px 25px;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            position: relative;
+            transition: background 0.3s ease;
+        }
+
+        .schedule-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .schedule-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 5px;
+            bottom: 5px;
+            width: 3px;
+            background: var(--accent-red);
+            border-radius: 0 3px 3px 0;
+        }
+
+        .day {
+            font-family: 'Teko', sans-serif;
+            font-size: 2.1rem;
+            width: 155px;
+            min-width: 155px;
+            color: var(--accent-red);
+            line-height: 1;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(255, 42, 61, 0.3);
+        }
+
+        .details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .type {
+            font-size: 1.35rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-light);
+            line-height: 1;
+            letter-spacing: 1px;
+        }
+
+        .time {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1100px) {
+            body {
+                flex-direction: column;
+                align-items: center;
+                gap: 30px;
+            }
+
+            .editor-panel {
+                position: static;
+                max-width: 95%;
+            }
+
+            .stream-card {
+                width: 100%;
+                max-width: 580px;
+                padding: 30px 25px;
+            }
+
+            #download-target {
+                width: 100%;
+                max-width: 580px;
+            }
+
+            .day {
+                font-size: 1.6rem;
+                width: 110px;
+                min-width: 110px;
+            }
+
+            .type {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .stream-card {
+                padding: 20px 15px;
+            }
+
+            .day {
+                font-size: 1.3rem;
+                width: 90px;
+                min-width: 90px;
+            }
+
+            .type {
+                font-size: 0.95rem;
+            }
+
+            .time {
+                font-size: 0.8rem;
+            }
+
+            .header-logo {
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== EDITOR ==================== -->
+    <div class="editor-panel">
+        <h2>Streamplan</h2>
+        <p class="subtitle">Belloflo · Editor</p>
+
+        <div class="format-selector">
+            <button class="format-btn active" data-width="580" onclick="setFormat(this, '580px')">🖥️ Discord</button>
+            <button class="format-btn" data-width="380" onclick="setFormat(this, '380px')">📱 Story (9:16)</button>
+        </div>
+
+        <div id="editor-fields">
+            <!-- Wird per JS gefüllt -->
+        </div>
+
+        <button class="btn-export" onclick="exportImage()">⚡ Bild speichern</button>
+    </div>
+
+    <!-- ==================== VORSCHAU / EXPORT ==================== -->
+    <div class="preview-wrapper">
+        <span class="preview-label">Live-Vorschau</span>
+        <div id="download-target">
+            <div class="stream-card" id="stream-card">
+                <div class="stream-card-header">
+                    <img src="https://zevkev.github.io/Medienspeicher/Bilder/Belloflo%20rot.png"
+                    alt="Belloflo Logo"
+                    class="header-logo"
+                    crossorigin="anonymous">
+                    <h2>Wochenplan</h2>
+                </div>
+                <div class="tech-divider"></div>
+                <div class="schedule-list" id="schedule-list">
+                    <!-- Wird per JS gefüllt -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+
+        // Presets: Montag(0)=Stream, Mittwoch(2)=Stream, Freitag(4)=Video
+        const presets = {
+            0: { type: "LIVESTREAM", time: "19:30 - OPEN END" },
+            2: { type: "LIVESTREAM", time: "19:30 - OPEN END" },
+            4: { type: "VIDEO", time: "ALLE ZWEI WOCHEN · CA. 12 UHR" }
+        };
+
+        let currentCardWidth = 580; // Default Discord-Breite
+
+        // ========== EDITOR-FELDER & VORSCHAU AUFBAUEN ==========
+        function buildUI() {
+            const editorFields = document.getElementById('editor-fields');
+            const scheduleList = document.getElementById('schedule-list');
+            editorFields.innerHTML = '';
+            scheduleList.innerHTML = '';
+
+            days.forEach((day, i) => {
+                const preset = presets[i] || { type: '', time: '' };
+
+                // Editor-Felder
+                editorFields.innerHTML += `
+                    <div class="input-group">
+                        <label>${day}</label>
+                        <input type="text" id="type${i}" value="${preset.type}" placeholder="z.B. LIVESTREAM" oninput="updatePlan()">
+                        <input type="text" id="time${i}" value="${preset.time}" placeholder="z.B. 19:30" oninput="updatePlan()">
+                    </div>`;
+
+                // Vorschau-Item
+                const showInitially = (preset.type || preset.time) ? 'flex' : 'none';
+                scheduleList.innerHTML += `
+                    <div class="schedule-item" id="item${i}" style="display: ${showInitially};">
+                        <div class="day" id="out-day${i}">${day.toUpperCase()}</div>
+                        <div class="details">
+                            <div class="type" id="out-type${i}">${preset.type}</div>
+                            <div class="time" id="out-time${i}">${preset.time}</div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // ========== LIVE-UPDATE ==========
+        function updatePlan() {
+            days.forEach((_, i) => {
+                const typeInput = document.getElementById('type' + i);
+                const timeInput = document.getElementById('time' + i);
+                const item = document.getElementById('item' + i);
+
+                const typeVal = typeInput ? typeInput.value.trim() : '';
+                const timeVal = timeInput ? timeInput.value.trim() : '';
+
+                // Ausgabe aktualisieren
+                const outType = document.getElementById('out-type' + i);
+                const outTime = document.getElementById('out-time' + i);
+                if (outType) outType.innerText = typeVal;
+                if (outTime) outTime.innerText = timeVal;
+
+                // Sichtbarkeit: Item nur zeigen wenn mind. ein Feld gefüllt ist
+                if (item) {
+                    item.style.display = (typeVal || timeVal) ? 'flex' : 'none';
+                }
+            });
+        }
+
+        // ========== FORMAT UMSCHALTEN ==========
+        function setFormat(btn, widthStr) {
+            // Aktiven Button markieren
+            document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Breite parsen und setzen
+            const widthPx = parseInt(widthStr);
+            currentCardWidth = widthPx;
+            const card = document.getElementById('stream-card');
+            if (card) {
+                card.style.width = widthPx + 'px';
+            }
+
+            // Auch den download-target anpassen (für sauberen Export)
+            const target = document.getElementById('download-target');
+            if (target) {
+                target.style.width = widthPx + 'px';
+            }
+
+            // Padding dynamisch anpassen für kleine Formate
+            if (widthPx <= 400) {
+                card.style.padding = '25px 20px';
+                // Kleinere Schrift
+                document.querySelectorAll('.day').forEach(el => {
+                    el.style.fontSize = '1.4rem';
+                    el.style.width = '90px';
+                    el.style.minWidth = '90px';
+                });
+                document.querySelectorAll('.type').forEach(el => el.style.fontSize = '1rem');
+                document.querySelectorAll('.time').forEach(el => el.style.fontSize = '0.8rem');
+                document.querySelector('.header-logo').style.maxWidth = '180px';
+            } else {
+                card.style.padding = '45px 50px';
+                document.querySelectorAll('.day').forEach(el => {
+                    el.style.fontSize = '2.1rem';
+                    el.style.width = '155px';
+                    el.style.minWidth = '155px';
+                });
+                document.querySelectorAll('.type').forEach(el => el.style.fontSize = '1.35rem');
+                document.querySelectorAll('.time').forEach(el => el.style.fontSize = '1rem');
+                document.querySelector('.header-logo').style.maxWidth = '380px';
+            }
+        }
+
+        // ========== EXPORT ==========
+        function exportImage() {
+            const target = document.getElementById('download-target');
+
+            // Wichtig: KEIN backgroundColor setzen → Ecken werden transparent
+            htmlToImage.toPng(target, {
+                    pixelRatio: 3,
+                    width: target.offsetWidth,
+                    height: target.offsetHeight
+                    // backgroundColor absichtlich weglassen
+                })
+                .then(function(dataUrl) {
+                    const link = document.createElement('a');
+                    link.download = 'Belloflo_Streamplan.png';
+                    link.href = dataUrl;
+                    link.click();
+                })
+                .catch(function(error) {
+                    console.error('Fehler beim Export:', error);
+                    alert(
+                        '⚠️ Fehler beim Generieren des Bildes. Bitte versuche es erneut oder nutze einen anderen Browser.');
+                });
+        }
+
+        // ========== INITIALISIERUNG ==========
+        buildUI();
+        updatePlan();
+
+        // Standard-Format setzen
+        const card = document.getElementById('stream-card');
+        const target = document.getElementById('download-target');
+        if (card) card.style.width = '580px';
+        if (target) target.style.width = '580px';
+
+        console.log('✅ Belloflo Streamplan Generator bereit.');
+        console.log('💡 Tipp: Leere Felder werden automatisch ausgeblendet.');
+        console.log('📐 Discord = 580px | Story = 380px');
+        console.log('🖼️ Export jetzt mit transparenten, abgeschnittenen Ecken!');
+    </script>
+</body>
+</html>
