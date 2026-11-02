@@ -66,8 +66,8 @@ through the redirect, but better update them).
 | `assets/data/team.json` | The team: name, role, colour, text, avatar, site, YouTube, channelId. Add a member here, the feeds and pages follow. |
 | `index.html` + `js/home.js` + `src/pages/home.css` | Welcome window (logo, numbers), Team, Neue Videos, Statistiken, Discord. |
 | `videos/` + `js/videos.js` + `src/pages/videos.css` | All videos: Videos/Shorts switch (`#shorts`), creator filter, sort. |
-| `mitmachen/` + `js/apply.js` + `js/config.js` + `src/pages/apply.css` | Application form for creators. Sends JSON to `APPLY_ENDPOINT` (`js/config.js`, empty = form shows "noch nicht freigeschaltet"). The Discord webhook must never be in this repo (public site). |
-| `worker/apply-worker.js` + `worker/wrangler.toml` | Endpoint for the form (Cloudflare Worker): validation, honeypot + min fill time + per IP limit, public YouTube lookup (avatar, subscribers, views of last 15, Shorts share; exact with `YT_API_KEY`), Discord embed with the applicant's channel picture as bot icon, mentions disabled. Tested locally against a fake webhook. |
+| `mitmachen/` + `js/apply.js` + `js/apply-crypto.js` + `js/config.js` + `src/pages/apply.css` | Application form. The browser seals each application (JSON, deflate, AES-256-GCM, key wrapped with the RSA-OAEP public key in `js/config.js`) and posts it to the ntfy.sh topic in `js/config.js` (`X-Firebase: no`, max 4096 bytes). Honeypot and minimum fill time; bots get a fake success. |
+| `scripts/watch-applications.mjs` + `scripts/apply-core.mjs` + `.github/workflows/applications.yml` | Long running watcher (polls the topic every minute for ~340 min, next cron run takes over, ntfy keeps messages 12 h): decrypts with secret `APPLY_PRIVATE_KEY`, validates, skips duplicates (state in `.github/applications-state.json`, no personal data), drops entries whose channel does not exist, max 12 posts per hour, looks up the public channel (avatar, subscribers, views of the last 15, Shorts share; exact with `YOUTUBE_API_KEY`) and posts a Discord embed via secret `DISCORD_WEBHOOK` (applicant's channel picture as bot icon, mentions off). Kevin chose this GitHub-only route over a Cloudflare Worker. |
 | `pictures/` + `js/pictures.js` + `src/pages/pictures.css` | XP style sign in (password 1324, compared as SHA-256, not real security: the files are public), folders of `Bilder/`, lightbox. `noindex`. |
 | `impressum/`, `datenschutz/`, `404.html` | Legal pages (Kevin's data, LDI NRW) and the 404 page (styles in `legal.css`). |
 | `scripts/fetch-feeds.mjs` | RSS feeds of every team channel into `videos.json` (Shorts check with consent cookie + oEmbed fallback) and `stats.json` (YouTube Data API if secret `YOUTUBE_API_KEY` exists, else feed numbers). |
@@ -76,6 +76,14 @@ through the redirect, but better update them).
 | `.github/workflows/` | `deploy.yml` (push/dispatch: CSS, previews, cache-bust), `data-refresh.yml` (30 min, dispatches the deploy on change). |
 | `tools/serve.mjs` | Local preview under `/Medienspeicher/` like GitHub Pages: `node tools/serve.mjs 8400`, then http://localhost:8400/Medienspeicher/ |
 | `_dev/` | Gitignored scratch (OG image source `og.html`, old gallery page). |
+
+## Secrets (repo settings, Kevin enters them himself)
+
+`DISCORD_WEBHOOK` (Discord webhook for applications), `APPLY_PRIVATE_KEY`
+(private key matching the public key in `js/config.js`; generated locally,
+kept only in `_dev/`, never committed), optional `YOUTUBE_API_KEY` (exact
+channel stats for the stats section and applications). Never put any of
+them into the site or the repo: the site is public.
 
 ## Testing
 

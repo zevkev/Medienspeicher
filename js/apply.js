@@ -1,7 +1,12 @@
-// Mitmachen page: checks the application form and sends it as JSON to
-// APPLY_ENDPOINT (js/config.js). The endpoint looks up the public channel
-// info and posts it to the team's Discord; nothing is stored on this site.
-import { APPLY_ENDPOINT } from "./config.js";
+// Mitmachen page: checks the application form, seals it (js/apply-crypto.js)
+// and drops it on the relay topic (js/config.js). A GitHub Action picks it
+// up, looks up the public channel info and posts it to the team's Discord.
+// Nothing is stored on this site.
+import { APPLY_RELAY, APPLY_TOPIC, APPLY_PUBLIC_KEY } from "./config.js";
+import { sealApplication } from "./apply-crypto.js";
+
+// ntfy.sh turns bigger messages into attachments; stay well below 4096 bytes.
+const MAX_BYTES = 4000;
 
 const $ = (id) => document.getElementById(id);
 const form = $("apply-form");
@@ -67,22 +72,24 @@ form.addEventListener("submit", async (ev) => {
     showError(MESSAGES[bad], bad);
     return;
   }
-  if (!APPLY_ENDPOINT) {
-    showError("Das Formular ist noch nicht freigeschaltet. Schreib uns solange gerne auf unserem Discord.");
-    return;
-  }
-
   errorEl.hidden = true;
   sendBtn.disabled = true;
   sendBtn.querySelector("span").textContent = "Wird gesendet …";
   try {
-    const res = await fetch(APPLY_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    const answer = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(answer.error || "Senden fehlgeschlagen");
+    // Bots fill the hidden field or send within seconds: pretend success.
+    if (!data.website && data.elapsed >= 4000) {
+      const { website, ...payload } = data;
+      const body = await sealApplication({ ...payload, sentAt: new Date().toISOString() }, APPLY_PUBLIC_KEY);
+      if (new TextEncoder().encode(body).length > MAX_BYTES) {
+        throw new Error("Deine Antworten sind zusammen etwas zu lang. Bitte fasse dich ein bisschen kürzer");
+      }
+      const res = await fetch(`${APPLY_RELAY}/${APPLY_TOPIC}`, {
+        method: "POST",
+        headers: { "X-Firebase": "no", "X-Cache": "yes" },
+        body,
+      });
+      if (!res.ok) throw new Error(res.status === 429 ? "Gerade kommen zu viele Anfragen rein" : "Senden fehlgeschlagen");
+    }
     form.hidden = true;
     const done = $("apply-done");
     done.hidden = false;

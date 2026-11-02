@@ -1,40 +1,16 @@
-// Medienspeicher application endpoint (Cloudflare Worker).
-//
-// The site is static (GitHub Pages) and cannot keep a secret, so the
-// Discord webhook lives here as a Worker secret. The Mitmachen form posts
-// JSON to this Worker; it checks the input, looks up public info about the
-// applicant's YouTube channel and posts a formatted message to Discord.
-//
-// Secrets / variables (Cloudflare dashboard > Worker > Settings > Variables):
-//   DISCORD_WEBHOOK  (secret, required)  the Discord webhook URL
-//   YT_API_KEY       (secret, optional)  YouTube Data API key: exact numbers
-//   ALLOWED_ORIGINS  (variable)          comma separated site origins
+// Application handling shared by scripts/watch-applications.mjs: input
+// checks, public YouTube channel lookup (avatar, subscribers, views of the
+// last 15 uploads, Shorts share; exact numbers with a YouTube API key) and
+// the Discord message (the applicant's channel picture as the bot icon,
+// mentions disabled so nobody can ping the server through the form).
 const UA = "Mozilla/5.0 (Medienspeicher application bot)";
 const YT_COOKIE = "SOCS=CAI; CONSENT=YES+";
 const BLUE = 0x1e88e5;
 const numberDE = new Intl.NumberFormat("de-DE");
 
-// Best effort flood protection per Worker instance (on top of the form's
-// honeypot and minimum fill time).
-const recent = new Map();
-
-function corsHeaders(origin, env) {
-  const allowed = (env.ALLOWED_ORIGINS || "https://zevkev.github.io").split(",").map((s) => s.trim());
-  return {
-    "Access-Control-Allow-Origin": allowed.includes(origin) ? origin : allowed[0],
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Max-Age": "86400",
-    Vary: "Origin",
-  };
-}
-
-const reply = (status, body, headers) =>
-  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json; charset=utf-8", ...headers } });
-
 const clip = (value, max) => String(value ?? "").trim().slice(0, max);
 
-function validate(d) {
+export function validate(d) {
   const channelUrl = clip(d.channelUrl, 200);
   const favoriteVideo = clip(d.favoriteVideo, 200);
   const out = {
@@ -134,10 +110,10 @@ async function channelFromPage(url) {
   };
 }
 
-async function lookupChannel(url, env) {
+export async function lookupChannel(url, ytApiKey) {
   const ref = parseChannel(url);
   let info = null;
-  if (env.YT_API_KEY) info = await channelFromApi(ref, env.YT_API_KEY).catch(() => null);
+  if (ytApiKey) info = await channelFromApi(ref, ytApiKey).catch(() => null);
   info ||= await channelFromPage(url).catch(() => null);
   if (!info) return null;
   const list = info.videos.slice(0, 15);
@@ -162,7 +138,7 @@ async function videoTitle(url) {
   }
 }
 
-async function postToDiscord(env, form, channel) {
+export async function postToDiscord(webhook, form, channel) {
   const vid = videoId(form.favoriteVideo);
   const title = (await videoTitle(form.favoriteVideo)) || "Video ansehen";
   const subs = channel?.subscribers != null ? numberDE.format(channel.subscribers) : channel?.subscribersText || "unbekannt";
@@ -198,43 +174,7 @@ async function postToDiscord(env, form, channel) {
       },
     ],
   };
-  const res = await fetch(env.DISCORD_WEBHOOK, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const res = await fetch(webhook, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   if (!res.ok) throw new Error(`Discord ${res.status}: ${await res.text()}`);
 }
 
-export default {
-  async fetch(request, env) {
-    const origin = request.headers.get("Origin") || "";
-    const cors = corsHeaders(origin, env);
-    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
-    if (request.method !== "POST") return reply(405, { error: "Nur POST" }, cors);
-    if (!env.DISCORD_WEBHOOK) return reply(500, { error: "Das Formular ist noch nicht eingerichtet" }, cors);
-
-    let data;
-    try {
-      data = await request.json();
-    } catch {
-      return reply(400, { error: "Ungültige Anfrage" }, cors);
-    }
-    // Bots: filled honeypot or sent within seconds. Answer "ok" so they
-    // don't retry, but send nothing.
-    if (data.website || Number(data.elapsed) < 4000) return reply(200, { ok: true }, cors);
-
-    const ip = request.headers.get("CF-Connecting-IP") || "?";
-    const now = Date.now();
-    if (now - (recent.get(ip) || 0) < 60_000) return reply(429, { error: "Bitte warte kurz, bevor du noch eine Anfrage sendest" }, cors);
-
-    const [form, problem] = validate(data);
-    if (!form) return reply(400, { error: problem }, cors);
-    recent.set(ip, now);
-
-    const channel = await lookupChannel(form.channelUrl, env).catch(() => null);
-    try {
-      await postToDiscord(env, form, channel);
-    } catch (err) {
-      console.error(err);
-      return reply(502, { error: "Die Anfrage konnte gerade nicht zugestellt werden" }, cors);
-    }
-    return reply(200, { ok: true }, cors);
-  },
-};

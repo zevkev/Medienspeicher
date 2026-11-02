@@ -1,0 +1,40 @@
+name: Forward applications to Discord
+
+on:
+  schedule:
+    # GitHub fires short cron schedules on small repos only every few hours,
+    # so each run watches for almost the whole 6 hour job limit (see
+    # scripts/watch-applications.mjs). A newer run replaces the running one.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: applications
+  cancel-in-progress: true
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Watch the form relay and post to Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          APPLY_PRIVATE_KEY: ${{ secrets.APPLY_PRIVATE_KEY }}
+          YT_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          WATCH_MINUTES: "340"
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          node scripts/watch-applications.mjs --publish

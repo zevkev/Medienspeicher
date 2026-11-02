@@ -75,9 +75,9 @@
       </div>
     </section>
 
-    <!-- Application form. js/apply.js sends it to the endpoint in
-         js/config.js (a small serverless function holds the Discord
-         webhook, it is never in this site's code). -->
+    <!-- Application form. js/apply.js encrypts it in the browser and drops
+         it on the relay in js/config.js; a GitHub Action posts it to
+         Discord. The webhook only lives in the repo secrets. -->
     <section id="bewerbung" class="win apply-win" aria-labelledby="form-title">
       <div class="win-bar">
         <img class="win-bar-icon" src="../assets/img/floppy.webp" alt="" width="64" height="64">
@@ -106,15 +106,15 @@
           </div>
           <div class="field field-wide">
             <label for="f-video-why">Warum magst du dieses Video so?</label>
-            <textarea id="f-video-why" name="favoriteWhy" rows="4" maxlength="1000" required></textarea>
+            <textarea id="f-video-why" name="favoriteWhy" rows="4" maxlength="800" required></textarea>
           </div>
           <div class="field field-wide">
             <label for="f-why">Warum möchtest du beitreten?</label>
-            <textarea id="f-why" name="joinWhy" rows="4" maxlength="1000" required></textarea>
+            <textarea id="f-why" name="joinWhy" rows="4" maxlength="800" required></textarea>
           </div>
           <div class="field field-wide">
             <label for="f-give">Was würdest du zum Team beitragen?</label>
-            <textarea id="f-give" name="contribute" rows="4" maxlength="1000" required></textarea>
+            <textarea id="f-give" name="contribute" rows="4" maxlength="800" required></textarea>
           </div>
           <!-- Left empty by people; bots tend to fill it. -->
           <div class="hp" aria-hidden="true">
