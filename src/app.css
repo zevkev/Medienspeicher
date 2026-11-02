@@ -249,7 +249,7 @@
   }
 
   /* Section heading inside a window. */
-  .sec-title { font-size: clamp(1.9rem, 5vw, 3rem); }
+  .sec-title { font-size: clamp(1.55rem, 7vw, 3rem); overflow-wrap: break-word; }
   .sec-sub { color: var(--ink-muted); font-size: 1.1rem; line-height: 1.65; }
 
   /* ---------- Aero buttons ---------- */
@@ -659,6 +659,12 @@
     .quick { flex: 1; justify-content: space-around; gap: 0.25rem; padding-inline: 0.4rem; }
     .quick a { flex: 1; justify-content: center; flex-direction: column; gap: 0.1rem; height: 2.85rem; padding-inline: 0.3rem; font-size: 0.72rem; }
     .tray { width: 100%; justify-content: space-between; height: 2.6rem; padding-inline: 1rem; }
+  }
+  @media (max-width: 379.98px) {
+    .start-btn { gap: 0.35rem; padding: 0 0.7rem 0 0.55rem; font-size: 1rem; }
+    .start-btn img { width: 1.3rem; height: 1.3rem; }
+    .quick { gap: 0.15rem; padding-inline: 0.25rem; }
+    .quick a { padding-inline: 0.15rem; font-size: 0.64rem; }
   }
   .tray {
     display: flex;

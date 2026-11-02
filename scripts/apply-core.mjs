@@ -123,11 +123,22 @@ export async function lookupChannel(url, ytApiKey) {
 }
 
 function formatText(c) {
-  if (!c?.count) return "Keine öffentlichen Videos gefunden";
+  if (!c?.count) return "keine öffentlichen Videos gefunden";
   const share = c.shorts / c.count;
-  const label = share >= 0.6 ? "Überwiegend Shorts" : share <= 0.4 ? "Überwiegend lange Videos" : "Gemischt";
-  return `${label} (${c.shorts} Shorts von ${c.count})`;
+  const label = share >= 0.6 ? "Überwiegend Shorts" : share <= 0.4 ? "Überwiegend lange Videos" : "Shorts und lange Videos gemischt";
+  return `${label} (${c.shorts} von ${c.count} sind Shorts)`;
 }
+
+// Free text as a Discord quote block, cut to the field limit.
+function quote(text, max = 1024) {
+  const lines = text.replace(/\r/g, "").split("\n").map((l) => `> ${l}`);
+  let out = lines.join("\n");
+  if (out.length > max) out = `${out.slice(0, max - 1)}…`;
+  return out;
+}
+
+// Discord would render these as formatting or links; show them as typed.
+const plain = (text) => text.replace(/([*_`~|>\[\]])/g, "\\$1");
 
 async function videoTitle(url) {
   try {
@@ -142,34 +153,47 @@ export async function postToDiscord(webhook, form, channel) {
   const vid = videoId(form.favoriteVideo);
   const title = (await videoTitle(form.favoriteVideo)) || "Video ansehen";
   const subs = channel?.subscribers != null ? numberDE.format(channel.subscribers) : channel?.subscribersText || "unbekannt";
+  const views = channel?.count ? numberDE.format(channel.recentViews) : "unbekannt";
+  const last = channel?.lastUpload ? `<t:${Math.floor(channel.lastUpload / 1000)}:R>` : "unbekannt";
+  const name = channel?.title || form.channelName;
+
+  // Top: who it is and the channel at a glance. Then the answers, each in
+  // its own quote block. Bottom: the favourite video as the big picture.
+  const summary = [
+    `**${plain(form.channelName)}** möchte beim Medienspeicher mitmachen.`,
+    "",
+    `**Abonnenten:** ${subs}${channel?.totalViews != null ? `  ·  **Aufrufe gesamt:** ${numberDE.format(channel.totalViews)}` : ""}`,
+    `**Aufrufe der letzten ${channel?.count || 15} Videos:** ${views}`,
+    `**Inhalte:** ${formatText(channel)}`,
+    `**Letzter Upload:** ${last}`,
+    "",
+    `**Kanal:** ${form.channelUrl}`,
+    `**E-Mail:** ${plain(form.email)}`,
+  ].join("\n");
+
   const fields = [
-    { name: "Kanal", value: `[${form.channelName}](${form.channelUrl})`, inline: true },
-    { name: "Abonnenten", value: subs, inline: true },
-    { name: "Aufrufe (letzte 15 Videos)", value: channel?.count ? numberDE.format(channel.recentViews) : "unbekannt", inline: true },
-    { name: "Format", value: formatText(channel), inline: true },
-    { name: "Letzter Upload", value: channel?.lastUpload ? `<t:${Math.floor(channel.lastUpload / 1000)}:R>` : "unbekannt", inline: true },
-    { name: "E-Mail", value: form.email, inline: true },
-    { name: "Lieblingsvideo", value: `[${title}](${form.favoriteVideo})\n${form.favoriteWhy}`.slice(0, 1024) },
-    { name: "Warum möchte die Person beitreten?", value: form.joinWhy.slice(0, 1024) },
-    { name: "Was würde die Person beitragen?", value: form.contribute.slice(0, 1024) },
-    { name: "Alter", value: "Mindestens 18 bestätigt", inline: true },
+    { name: "Lieblingsvideo", value: `[${plain(title)}](${form.favoriteVideo})\n${quote(form.favoriteWhy, 1024 - title.length - form.favoriteVideo.length - 8)}` },
+    { name: "Warum möchte die Person beitreten?", value: quote(form.joinWhy) },
+    { name: "Was würde die Person zum Team beitragen?", value: quote(form.contribute) },
+    { name: "Alter", value: "18+ bestätigt", inline: true },
+    { name: "Datenschutz", value: "bestätigt", inline: true },
+    { name: "Gesendet", value: `<t:${Math.floor(Date.now() / 1000)}:f>`, inline: true },
   ];
-  if (channel?.totalViews != null) fields.splice(3, 0, { name: "Aufrufe gesamt", value: numberDE.format(channel.totalViews), inline: true });
   const body = {
-    username: `Bewerbung: ${form.channelName}`.slice(0, 80),
+    username: `Bewerbung von ${name}`.slice(0, 80),
     avatar_url: channel?.avatar || undefined,
     allowed_mentions: { parse: [] },
     embeds: [
       {
-        title: `Neue Bewerbung für den Medienspeicher`,
+        author: { name: "Neue Bewerbung für den Medienspeicher", icon_url: "https://medien-speicher.de/assets/img/icon-192.png", url: "https://medien-speicher.de/mitmachen/" },
+        title: name.slice(0, 256),
         url: form.channelUrl,
+        description: summary.slice(0, 4096),
         color: BLUE,
-        author: { name: channel?.title || form.channelName, url: form.channelUrl, icon_url: channel?.avatar || undefined },
         thumbnail: channel?.avatar ? { url: channel.avatar } : undefined,
-        description: `**${form.channelName}** möchte beim Medienspeicher mitmachen.`,
         fields,
         image: { url: `https://i.ytimg.com/vi/${vid}/hqdefault.jpg` },
-        footer: { text: "Medienspeicher Bewerbungsformular" },
+        footer: { text: "Antworte der Person per E-Mail. Bewerbung über medien-speicher.de" },
         timestamp: new Date().toISOString(),
       },
     ],

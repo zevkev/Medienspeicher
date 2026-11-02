@@ -1,7 +1,7 @@
-// Local preview that behaves like GitHub Pages for this project site: the
-// site lives under /Medienspeicher/ (like zevkev.github.io/Medienspeicher/),
-// directories serve index.html, unknown paths get /404.html with status 404,
-// nothing is cached.
+// Local preview that behaves like GitHub Pages for medien-speicher.de: the
+// site lives at the root, directories serve index.html, unknown paths get
+// /404.html with status 404, nothing is cached. The old project path
+// /Medienspeicher/... still works too (relative URLs make both fine).
 //   node tools/serve.mjs [port]
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
@@ -47,11 +47,11 @@ async function fileFor(urlPath) {
 
 createServer(async (req, res) => {
   const { pathname } = new URL(req.url, "http://localhost");
-  if (pathname === "/" || pathname === "/Medienspeicher") {
+  if (pathname === "/Medienspeicher") {
     res.writeHead(302, { Location: PREFIX }).end();
     return;
   }
-  let file = pathname.startsWith(PREFIX) ? await fileFor(pathname.slice(PREFIX.length - 1)) : null;
+  let file = await fileFor(pathname.startsWith(PREFIX) ? pathname.slice(PREFIX.length - 1) : pathname);
   let status = 200;
   if (!file) {
     file = join(ROOT, "404.html");
@@ -64,4 +64,4 @@ createServer(async (req, res) => {
   } catch {
     res.writeHead(500).end("error");
   }
-}).listen(PORT, () => console.log(`serving ${ROOT} on http://localhost:${PORT}${PREFIX}`));
+}).listen(PORT, () => console.log(`serving ${ROOT} on http://localhost:${PORT}/`));

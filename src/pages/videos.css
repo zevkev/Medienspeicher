@@ -8,7 +8,7 @@
   .v-people { order: 2; display: flex; flex-wrap: wrap; gap: 0.6rem; width: 100%; }
   @media (max-width: 639.98px) {
     .v-type { width: 100%; }
-    .v-type .seg-item { flex: 1; }
+    .v-type .seg-item { flex: 1; min-width: 0; padding-inline: 0.5rem; font-size: 0.92rem; }
     .v-sort { margin-left: 0; }
     /* Creators scroll sideways on phones instead of wrapping into rows. */
     .v-people { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -1.5rem; padding: 0.25rem 1.5rem 0.5rem; }

@@ -75,7 +75,7 @@ through the redirect, but better update them).
 | `scripts/fetch-discord.mjs` | Discord invite stats and server icon. |
 | `scripts/build-pictures.mjs` | Previews and list for `/pictures/` (uses sharp). |
 | `.github/workflows/` | `deploy.yml` (push/dispatch: CSS, previews, cache-bust), `data-refresh.yml` (30 min, dispatches the deploy on change). |
-| `tools/serve.mjs` | Local preview under `/Medienspeicher/` like GitHub Pages: `node tools/serve.mjs 8400`, then http://localhost:8400/Medienspeicher/ |
+| `tools/serve.mjs` | Local preview like GitHub Pages at the root: `node tools/serve.mjs 8400`, then http://localhost:8400/ |
 | `_dev/` | Gitignored scratch (OG image source `og.html`, old gallery page). |
 
 ## Secrets (repo settings, Kevin enters them himself)
