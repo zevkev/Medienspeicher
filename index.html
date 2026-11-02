@@ -1,190 +1,175 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medienspeicher Galerie</title>
-    <style>
-        :root {
-            --bg: #0b0e14;
-            --accent: #00d4ff;
-            --card: #161b22;
-            --text: #f0f6fc;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Medienspeicher | Team aus Content Creatorn</title>
+<meta name="description" content="Medienspeicher ist ein kleines Team an Content Creatorn, die zusammen Videos machen: ZevKev, Jamon, Belloflo und Coasty. Videos, Kanal-Statistiken und Discord Community.">
+<link rel="canonical" href="https://zevkev.github.io/Medienspeicher/">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/img/icon-192.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<meta name="theme-color" content="#1f6fdc">
+<link rel="preload" href="assets/fonts/montserrat-latin-wght-italic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/source-sans-3-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/app.css">
+<script src="js/boot.js"></script>
 
-        body {
-            margin: 0;
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        /* Schickes Hintergrund-Raster */
-        .bg-grid {
-            position: fixed;
-            inset: 0;
-            background-image: linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
-            z-index: -1;
-        }
-
-        header {
-            padding: 30px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        h1 { margin: 0; letter-spacing: 3px; font-weight: 300; }
-        h1 span { color: var(--accent); font-weight: 800; }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-
-        h2 {
-            border-left: 4px solid var(--accent);
-            padding-left: 15px;
-            margin: 40px 0 20px;
-            font-size: 1.2rem;
-            text-transform: uppercase;
-        }
-
-        /* Galerie-Gitter */
-        .gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background: var(--card);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-        }
-
-        .card img {
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-            display: block;
-        }
-
-        .info {
-            padding: 12px;
-            font-size: 0.8rem;
-            text-align: center;
-            background: rgba(0,0,0,0.3);
-            color: #8b949e;
-        }
-
-        /* Lightbox */
-        #lightbox {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.95);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            padding: 20px;
-        }
-
-        #lightbox img {
-            max-width: 95%;
-            max-height: 95%;
-            border-radius: 5px;
-            box-shadow: 0 0 30px rgba(0,212,255,0.2);
-        }
-    </style>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Medienspeicher">
+<meta property="og:locale" content="de_DE">
+<meta property="og:title" content="Medienspeicher | Team aus Content Creatorn">
+<meta property="og:description" content="Ein kleines Team an Content Creatorn, die zusammen Videos machen: ZevKev, Jamon, Belloflo und Coasty.">
+<meta property="og:url" content="https://zevkev.github.io/Medienspeicher/">
+<meta property="og:image" content="https://zevkev.github.io/Medienspeicher/assets/img/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Medienspeicher Logo in einem Fenster über einer Wiese unter blauem Himmel">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zevkev.github.io/Medienspeicher/assets/img/og.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Medienspeicher",
+  "url": "https://zevkev.github.io/Medienspeicher/",
+  "logo": "https://zevkev.github.io/Medienspeicher/assets/img/logo.webp",
+  "description": "Ein kleines Team an Content Creatorn, die zusammen Videos machen.",
+  "member": [
+    { "@type": "Person", "name": "ZevKev", "url": "https://zevkev.de/" },
+    { "@type": "Person", "name": "Jamon", "url": "https://jamonhd.de/" },
+    { "@type": "Person", "name": "Belloflo", "url": "https://belloflo.de/" },
+    { "@type": "Person", "name": "Coasty" }
+  ],
+  "sameAs": ["https://discord.com/invite/psW4NgjBFN"]
+}
+</script>
+<noscript><style>.ms-needs-js { display: none !important; }</style></noscript>
 </head>
 <body>
+<div id="site-header"></div>
 
-<div class="bg-grid"></div>
+<main id="main" class="home">
 
-<header>
-    <h1>MEDIEN<span>SPEICHER</span></h1>
-</header>
+  <!-- Welcome window: the team in the title bar (like the channel art),
+       logo, what the Medienspeicher is, three real numbers, actions. -->
+  <section class="welcome container-page" aria-labelledby="hero-title">
+    <div class="win hero-win">
+      <div class="win-bar">
+        <img class="win-bar-icon" src="assets/img/floppy.webp" alt="" width="64" height="64">
+        <span class="win-bar-title">ZevKev / Jamon / Belloflo / Coasty</span>
+      </div>
+      <div class="win-body hero-body">
+        <h1 id="hero-title" class="sr-only">Medienspeicher</h1>
+        <img class="hero-logo" src="assets/img/logo.webp" alt="Medienspeicher" width="1200" height="300" fetchpriority="high">
+        <p class="hero-lead">Ein kleines Team an Content Creatorn, die zusammenarbeiten, um Videos miteinander zu machen.</p>
+        <ul class="hero-facts" aria-label="Zahlen">
+          <li class="fact"><b data-count="4">4</b><span>Creator im Team</span></li>
+          <li class="fact"><b id="fact-videos" class="ms-needs-js"><span class="skeleton inline-block h-8 w-16"></span></b><span>Aufrufe der neuesten Videos</span></li>
+          <li class="fact"><b id="fact-discord" class="ms-needs-js"><span class="skeleton inline-block h-8 w-12"></span></b><span>Mitglieder im Discord</span></li>
+        </ul>
+        <div class="hero-actions">
+          <a class="btn btn-lg" href="videos/"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg><span>Videos ansehen</span></a>
+          <a class="btn btn-discord btn-lg" href="https://discord.com/invite/psW4NgjBFN" target="_blank" rel="noopener" data-brand="discord"><span>Discord beitreten</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<div class="container">
-    <section>
-        <h2>🖼️ Hauptordner</h2>
-        <div id="gal-main" class="gallery"></div>
+  <div class="container-page">
+
+
+    <!-- Team: filled from assets/data/team.json by js/home.js -->
+    <section id="team" class="win reveal home-sec" aria-labelledby="team-title">
+      <div class="win-bar">
+        <img class="win-bar-icon" src="assets/img/floppy.webp" alt="" width="64" height="64">
+        <span class="win-bar-title">Team</span>
+      </div>
+      <div class="win-body">
+        <h2 id="team-title" class="title-outline sec-title">Das Team</h2>
+        <p class="sec-sub mt-4">Wer im Medienspeicher Videos macht.</p>
+        <div id="team-grid" class="team-grid mt-10" aria-busy="true">
+          <div class="skeleton h-80"></div><div class="skeleton h-80"></div><div class="skeleton h-80"></div><div class="skeleton h-80"></div>
+        </div>
+      </div>
     </section>
 
-    <section>
-        <h2>📁 Jason</h2>
-        <div id="gal-jason" class="gallery"></div>
+
+    <!-- Channel statistics: assets/data/stats.json -->
+    <section id="stats" class="win reveal home-sec ms-needs-js" aria-labelledby="stats-title">
+      <div class="win-bar">
+        <img class="win-bar-icon" src="assets/img/floppy.webp" alt="" width="64" height="64">
+        <span class="win-bar-title">Kanal-Statistiken</span>
+      </div>
+      <div class="win-body">
+        <h2 id="stats-title" class="title-outline sec-title">Statistiken</h2>
+        <p id="stats-sub" class="sec-sub mt-4">Die YouTube Kanäle vom Team im Überblick.</p>
+        <div id="stats-totals" class="stats-totals mt-10"></div>
+        <div id="stats-bars" class="stats-bars mt-12"></div>
+      </div>
     </section>
 
-    <section>
-        <h2>📁 Kev</h2>
-        <div id="gal-kev" class="gallery"></div>
+    <!-- Newest videos of the whole team -->
+    <section id="neu" class="win reveal home-sec ms-needs-js" aria-labelledby="new-title">
+      <div class="win-bar">
+        <img class="win-bar-icon" src="assets/img/floppy.webp" alt="" width="64" height="64">
+        <span class="win-bar-title">Neu im Team</span>
+      </div>
+      <div class="win-body">
+        <div class="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <h2 id="new-title" class="title-outline sec-title">Neue Videos</h2>
+            <p class="sec-sub mt-4">Die neuesten Uploads aus allen Kanälen.</p>
+          </div>
+          <a class="btn btn-glass" href="videos/"><span>Alle Videos</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+        <div id="new-grid" class="new-grid mt-10">
+          <div class="skeleton aspect-video"></div><div class="skeleton aspect-video"></div><div class="skeleton aspect-video"></div>
+        </div>
+      </div>
     </section>
 
-    <section>
-        <h2>⛏️ MC Server</h2>
-        <div id="gal-mc" class="gallery"></div>
+
+    <!-- Discord -->
+    <section id="discord" class="win reveal home-sec" aria-labelledby="dc-title">
+      <div class="win-bar">
+        <img class="win-bar-icon" src="assets/img/floppy.webp" alt="" width="64" height="64">
+        <span class="win-bar-title">Discord</span>
+      </div>
+      <div class="win-body dc">
+        <div class="dc-main">
+          <div class="flex items-center gap-5">
+            <span class="orb size-16 shrink-0 sm:size-20" style="--orb:#5865f2"><img src="assets/img/discord-icon.png" alt="" width="256" height="256" loading="lazy"></span>
+            <h2 id="dc-title" class="title-outline sec-title min-w-0">Tritt der Community bei</h2>
+          </div>
+          <p class="sec-sub mt-6 max-w-xl">Auf unserem Discord Server <b id="dc-name" class="text-ink">Medienspeicher</b> triffst du das Team und die Community: quatschen, Videos besprechen und zusammen zocken.</p>
+          <ul class="dc-stats mt-8 ms-needs-js" aria-label="Discord Zahlen">
+            <li><span class="dc-dot dc-dot-on" aria-hidden="true"></span><b id="dc-online">0</b> online</li>
+            <li><span class="dc-dot" aria-hidden="true"></span><b id="dc-members">0</b> Mitglieder</li>
+          </ul>
+          <div class="mt-9 flex flex-wrap gap-4">
+            <a class="btn btn-discord btn-lg" href="https://discord.com/invite/psW4NgjBFN" target="_blank" rel="noopener" data-brand="discord"><span>Server beitreten</span></a>
+            <button id="dc-copy" class="btn btn-glass btn-lg ms-needs-js" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="13" height="13" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span>Link kopieren</span></button>
+          </div>
+        </div>
+        <details class="dc-how">
+          <summary><span>So trittst du bei</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <ol class="dc-steps">
+            <li><b>Einladung öffnen</b><span>Klick auf „Server beitreten“. Der Link öffnet Discord im Browser oder in der App.</span></li>
+            <li><b>Anmelden</b><span>Melde dich mit deinem Discord Account an oder erstelle kostenlos einen.</span></li>
+            <li><b>Beitreten</b><span>Bestätige die Einladung und lies kurz die Regeln. Schon bist du dabei.</span></li>
+          </ol>
+        </details>
+      </div>
     </section>
-</div>
 
-<div id="lightbox" onclick="this.style.display='none'">
-    <img id="lb-img" src="">
-</div>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</main>
 
-<script>
-    // BASIS-PFAD (Hier liegen alle deine Bilder)
-    const base = "Bilder/";
-
-    // DATEILISTEN
-    const files = {
-        main: ["Jamon.jpg", "Medienspeicher.png", "TTT.png", "ZevKev.png", "bello.jpg", "neues icon.png", "Belloflo rot.png"],
-        jason: ["Jason/Banner new jpeg.jpg", "Jason/Park.jpg", "Jason/Video BG Jamon.png", "Jason/YT.jpg", "Jason/dis.jpg", "Jason/frei.jpg"],
-        kev: ["kev/1760363756349.png", "kev/Banner new jpeg.jpg", "kev/Video BG.png", "kev/neues icon.png", "pixelcut-export (1).png"],
-        mc: ["mcserver/DeathSwap.png", "mcserver/Fortune.png", "mcserver/Survival.png", "mcserver/TTT.png", "mcserver/Temp.png", "mcserver/TheBridge.png", "mcserver/itemchaos.png", "mcserver/kitpvp.png"]
-    };
-
-    function load(list, elementId) {
-        const container = document.getElementById(elementId);
-        list.forEach(name => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            
-            // WICHTIG: base + name ergibt "Bilder/Ordner/Datei.png"
-            const fullPath = base + name;
-            const encodedPath = encodeURI(fullPath);
-
-            card.innerHTML = `
-                <img src="${encodedPath}" loading="lazy" onerror="console.log('Fehler bei: ' + this.src); this.parentElement.style.display='none'">
-                <div class="info">${name.split('/').pop()}</div>
-            `;
-
-            card.onclick = () => {
-                document.getElementById('lb-img').src = encodedPath;
-                document.getElementById('lightbox').style.display = 'flex';
-            };
-
-            container.appendChild(card);
-        });
-    }
-
-    // Galerien befüllen
-    load(files.main, 'gal-main');
-    load(files.jason, 'gal-jason');
-    load(files.kev, 'gal-kev');
-    load(files.mc, 'gal-mc');
-</script>
-
+<div id="site-footer"></div>
+<script type="module" src="js/layout.js"></script>
+<script type="module" src="js/home.js"></script>
 </body>
 </html>

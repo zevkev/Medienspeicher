@@ -1,0 +1,173 @@
+/* Page styles: pictures (/pictures/). XP welcome screen for the sign in,
+   explorer style folders and a lightbox for the gallery. */
+@layer components {
+  /* ---------- Sign in ---------- */
+  .pic-login { max-width: 56rem; margin-inline: auto; }
+  .login-screen {
+    position: relative;
+    display: grid;
+    gap: 2rem;
+    padding: 2.5rem 1.5rem;
+    color: #fff;
+    background:
+      radial-gradient(70% 90% at 15% 30%, rgb(140 200 255 / 0.55), transparent 70%),
+      linear-gradient(180deg, #5a7edc 0%, #3c64c8 100%);
+  }
+  /* The white line between the two halves, like on the XP welcome screen. */
+  @media (min-width: 768px) {
+    .login-screen { grid-template-columns: 1fr 1fr; align-items: center; gap: 0; padding: 4rem 0; }
+    .login-screen::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 12%;
+      bottom: 12%;
+      width: 1px;
+      background: linear-gradient(180deg, transparent, rgb(255 255 255 / 0.85), transparent);
+    }
+  }
+  .login-side { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; padding-inline: 2rem; text-align: center; }
+  @media (min-width: 768px) { .login-side { align-items: flex-end; text-align: right; } }
+  .login-logo { width: 100%; max-width: 20rem; height: auto; filter: drop-shadow(0 6px 12px rgb(0 20 80 / 0.4)); }
+  .login-hint { max-width: 22rem; font-size: 1.05rem; line-height: 1.5; text-shadow: 0 1px 2px rgb(0 0 0 / 0.3); }
+  .login-user { display: flex; align-items: center; gap: 1.1rem; padding: 1.25rem; border-radius: 0.9rem; background: linear-gradient(90deg, rgb(255 255 255 / 0.18), transparent); }
+  @media (min-width: 768px) { .login-user { margin-left: 2.5rem; margin-right: 2rem; } }
+  .login-avatar { width: 4.5rem; height: 4.5rem; flex-shrink: 0; border-radius: 0.6rem; border: 3px solid #fff; box-shadow: 0 6px 14px -6px rgb(0 0 0 / 0.5); }
+  .login-fields { min-width: 0; flex: 1; }
+  .login-name { font-size: 1.5rem; font-style: italic; font-weight: 800; text-shadow: 0 1px 2px rgb(0 0 0 / 0.35); }
+  .login-row { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+  .login-input {
+    width: 100%;
+    min-width: 0;
+    height: 2.5rem;
+    padding: 0 0.8rem;
+    border: 1px solid #1d3f9c;
+    border-radius: 0.35rem;
+    color: #0d2440;
+    background: #fff;
+    box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.25);
+    font-size: 1.05rem;
+    letter-spacing: 0.15em;
+  }
+  .login-go {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid #1d6e14;
+    border-radius: 0.4rem;
+    color: #fff;
+    background: linear-gradient(180deg, #6fd35c 0%, #3aa82c 50%, #2e9322 51%, #48b83a 100%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.55);
+  }
+  .login-go:hover { filter: brightness(1.1); }
+  .login-go svg { width: 1.2rem; height: 1.2rem; }
+  .login-error { margin-top: 0.6rem; padding: 0.4rem 0.7rem; border-radius: 0.35rem; color: #0d2440; background: #ffffe1; box-shadow: 0 0 0 1px #000; font-size: 0.92rem; }
+  @media (prefers-reduced-motion: no-preference) {
+    .login-row.is-wrong { animation: shake 0.4s ease; }
+  }
+
+  /* ---------- Gallery ---------- */
+  .gal-folders { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 2rem; }
+  .gal-folder {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    height: 2.75rem;
+    padding: 0 1rem 0 0.75rem;
+    border: 0;
+    border-radius: 0.6rem;
+    color: var(--ink);
+    background: var(--glass-strong);
+    box-shadow: inset 0 1px 0 var(--glass-edge), 0 0 0 1px var(--line);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 800;
+    font-size: 0.9rem;
+  }
+  .gal-folder svg { width: 1.5rem; height: 1.5rem; }
+  .gal-folder[aria-selected="true"] { box-shadow: inset 0 1px 0 var(--glass-edge), 0 0 0 2.5px #1584e0, 0 6px 16px -8px #1584e0; }
+  .gal-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 2rem; }
+  @media (min-width: 640px) { .gal-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; } }
+  @media (min-width: 1024px) { .gal-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .gal-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+    padding: 0.5rem 0.5rem 0.8rem;
+    border: 0;
+    border-radius: 0.8rem;
+    color: var(--ink);
+    text-align: left;
+    background: var(--glass-strong);
+    box-shadow: inset 0 1px 0 var(--glass-edge), 0 0 0 1px var(--line);
+    transition: translate 0.25s var(--ease-pop), box-shadow 0.2s ease;
+  }
+  .gal-item:hover { translate: 0 -4px; box-shadow: inset 0 1px 0 var(--glass-edge), 0 0 0 2px #3aa6f2, 0 14px 24px -14px rgb(8 52 110 / 0.6); }
+  .gal-thumb {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background: repeating-conic-gradient(#e8eef6 0 25%, #f7f9fc 0 50%) 0 0 / 18px 18px;
+  }
+  :where([data-theme="dark"]) .gal-thumb { background: repeating-conic-gradient(#14264a 0 25%, #1a2f58 0 50%) 0 0 / 18px 18px; }
+  .gal-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .gal-name { padding-inline: 0.25rem; font-weight: 700; font-size: 0.92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .gal-meta { padding-inline: 0.25rem; color: var(--ink-muted); font-size: 0.8rem; }
+
+  /* ---------- Lightbox ---------- */
+  .gal-view {
+    width: min(64rem, calc(100vw - 1.5rem));
+    max-height: calc(100dvh - 1.5rem);
+    padding: 0;
+    margin: auto;
+    border: 0;
+    border-radius: 0.8rem;
+    overflow: hidden;
+    color: var(--ink);
+    background: var(--glass-strong);
+    box-shadow: 0 0 0 1px var(--win-ring), 0 30px 60px -20px rgb(0 0 0 / 0.6);
+  }
+  .gal-view::backdrop { background: rgb(4 20 50 / 0.65); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  .gal-close {
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.7rem;
+    border: 1px solid #fff;
+    border-radius: 0.3rem;
+    color: #fff;
+    background: linear-gradient(180deg, #f08a6c 0%, #d9502b 50%, #c8401b 51%, #e46a45 100%);
+  }
+  .gal-close svg { width: 0.9rem; height: 0.9rem; }
+  .gal-view-stage { position: relative; display: grid; place-items: center; min-height: 12rem; padding: 1rem 3.5rem; background: repeating-conic-gradient(#e8eef6 0 25%, #f7f9fc 0 50%) 0 0 / 22px 22px; }
+  :where([data-theme="dark"]) .gal-view-stage { background: repeating-conic-gradient(#14264a 0 25%, #1a2f58 0 50%) 0 0 / 22px 22px; }
+  .gal-view-stage img { max-width: 100%; max-height: calc(100dvh - 11rem); object-fit: contain; }
+  .gal-nav {
+    position: absolute;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    translate: 0 -50%;
+    border: 1px solid #0b5fb0;
+    border-radius: 9999px;
+    color: #fff;
+    background: linear-gradient(180deg, #8fd6ff 0%, #3aa6f2 49%, #1584e0 51%, #4cb2f7 100%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 6px 14px -6px #0b5fb0;
+  }
+  .gal-nav svg { width: 1.2rem; height: 1.2rem; }
+  .gal-prev { left: 0.6rem; }
+  .gal-next { right: 0.6rem; }
+  .gal-view-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.8rem 1rem; font-size: 0.9rem; color: var(--ink-muted); }
+}
+
+@keyframes shake {
+  20%, 60% { translate: -6px 0; }
+  40%, 80% { translate: 6px 0; }
+}

@@ -1,0 +1,26 @@
+{
+  "updatedAt": "2026-11-02T21:31:03.000Z",
+  "source": "feed",
+  "channels": {
+    "zevkev": {
+      "recentViews": 116439,
+      "recentVideos": 15,
+      "uploads30d": 0
+    },
+    "jamon": {
+      "recentViews": 15167,
+      "recentVideos": 15,
+      "uploads30d": 1
+    },
+    "belloflo": {
+      "recentViews": 10563,
+      "recentVideos": 15,
+      "uploads30d": 1
+    },
+    "coasty": {
+      "recentViews": 11882,
+      "recentVideos": 15,
+      "uploads30d": 8
+    }
+  }
+}

@@ -1,0 +1,10 @@
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+
+# Generated in CI on deploy: Tailwind output, picture thumbnails + manifest
+assets/css/
+assets/thumbs/
+assets/data/pictures.json
+_dev/

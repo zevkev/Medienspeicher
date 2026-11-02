@@ -1,0 +1,17 @@
+{
+  "name": "medienspeicher",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tailwindcss -i ./src/app.css -o ./assets/css/app.css --minify",
+    "dev": "tailwindcss -i ./src/app.css -o ./assets/css/app.css --watch",
+    "pictures": "node scripts/build-pictures.mjs"
+  },
+  "devDependencies": {
+    "@fontsource-variable/montserrat": "^5.2.8",
+    "@fontsource-variable/source-sans-3": "^5.2.8",
+    "@tailwindcss/cli": "^4.3.3",
+    "sharp": "^0.34.4",
+    "tailwindcss": "^4.3.3"
+  }
+}

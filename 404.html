@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nicht gefunden | Medienspeicher</title>
+<meta name="robots" content="noindex">
+<!-- GitHub Pages serves this page for any missing address at any depth, so
+     relative links need the site root as base. On an own domain this
+     becomes "/" (see CLAUDE.md). -->
+<base href="/Medienspeicher/">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+<link rel="stylesheet" href="assets/css/app.css">
+<script src="js/boot.js"></script>
+</head>
+<body>
+<div id="site-header"></div>
+
+<main id="main" class="page">
+  <div class="container-page">
+    <section class="win nf-win" aria-labelledby="nf-title">
+      <div class="win-bar">
+        <img class="win-bar-icon" src="assets/img/floppy.webp" alt="" width="64" height="64">
+        <span class="win-bar-title">Fehler</span>
+      </div>
+      <div class="win-body nf-body">
+        <img class="nf-icon" src="assets/img/floppy.webp" alt="" width="512" height="512">
+        <div>
+          <h1 id="nf-title" class="title-outline sec-title">Seite nicht gefunden</h1>
+          <p class="sec-sub mt-4">Diese Datei liegt nicht im Medienspeicher. Vielleicht wurde sie verschoben oder der Link ist falsch.</p>
+          <p class="nf-path mt-4"><code id="nf-path"></code></p>
+          <div class="mt-8 flex flex-wrap gap-4">
+            <a class="btn btn-lg" href="./"><span>Zur Startseite</span></a>
+            <a class="btn btn-glass btn-lg" href="videos/"><span>Zu den Videos</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+<script>document.getElementById("nf-path").textContent = location.pathname;</script>
+<script type="module" src="js/layout.js"></script>
+</body>
+</html>

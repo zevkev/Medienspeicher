@@ -1,0 +1,59 @@
+name: Refresh videos, stats and Discord
+
+on:
+  schedule:
+    # GitHub runs short cron schedules on small repos only every few hours
+    # in practice; 30 minutes is the request, not a promise.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: data-refresh
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Fetch YouTube feeds and channel stats
+        # Public RSS feeds of every channel in assets/data/team.json. With
+        # the optional secret YOUTUBE_API_KEY the stats are real channel
+        # totals, without it they come from the feeds.
+        continue-on-error: true
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: node scripts/fetch-feeds.mjs
+
+      - name: Fetch Discord invite stats
+        continue-on-error: true
+        run: node scripts/fetch-discord.mjs
+
+      - name: Commit, push and deploy changes if any
+        # Pushes made with the workflow token do not start other workflows,
+        # so the site is deployed explicitly (workflow_dispatch is allowed).
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add assets/data/videos.json assets/data/stats.json assets/data/discord.json assets/img/discord-icon.png
+          if git diff --cached --quiet; then
+            echo "No changes."
+            exit 0
+          fi
+          git commit -m "chore: refresh videos, stats and Discord"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          gh workflow run deploy.yml --ref main

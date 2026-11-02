@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Videos | Medienspeicher</title>
+<meta name="description" content="Alle neuen Videos und Shorts vom Medienspeicher Team: ZevKev, Jamon, Belloflo und Coasty, das Neueste zuerst.">
+<link rel="canonical" href="https://zevkev.github.io/Medienspeicher/videos/">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../assets/img/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
+<meta name="theme-color" content="#1f6fdc">
+<link rel="preload" href="../assets/fonts/montserrat-latin-wght-italic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/source-sans-3-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://i.ytimg.com">
+<link rel="stylesheet" href="../assets/css/app.css">
+<script src="../js/boot.js"></script>
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Medienspeicher">
+<meta property="og:locale" content="de_DE">
+<meta property="og:title" content="Videos | Medienspeicher">
+<meta property="og:description" content="Alle neuen Videos und Shorts vom Medienspeicher Team, das Neueste zuerst.">
+<meta property="og:url" content="https://zevkev.github.io/Medienspeicher/videos/">
+<meta property="og:image" content="https://zevkev.github.io/Medienspeicher/assets/img/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Medienspeicher Logo in einem Fenster über einer Wiese unter blauem Himmel">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zevkev.github.io/Medienspeicher/assets/img/og.png">
+<noscript><style>.ms-needs-js { display: none !important; }</style></noscript>
+</head>
+<body>
+<div id="site-header"></div>
+
+<main id="main" class="page">
+  <div class="container-page">
+    <section class="win" aria-labelledby="v-title">
+      <div class="win-bar">
+        <img class="win-bar-icon" src="../assets/img/floppy.webp" alt="" width="64" height="64">
+        <span class="win-bar-title">Videos</span>
+      </div>
+      <div class="win-body">
+        <h1 id="v-title" class="title-outline sec-title">Alle Videos</h1>
+        <p id="v-sub" class="sec-sub mt-4">Die neuesten Uploads von jedem Kanal im Team, das Neueste zuerst.</p>
+
+        <!-- Toolbar: type switch (Videos / Shorts), creator filter, sort. -->
+        <div class="v-toolbar ms-needs-js">
+          <div id="v-type" class="seg v-type" role="tablist" aria-label="Art">
+            <button type="button" class="seg-item" role="tab" data-type="videos" aria-selected="true" aria-controls="v-grid">
+              <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M10 9.2v5.6l4.6-2.8z" fill="currentColor"/></svg>
+              Videos <span class="seg-count" data-count-type="videos"></span>
+            </button>
+            <button type="button" class="seg-item" role="tab" data-type="shorts" aria-selected="false" aria-controls="v-grid" tabindex="-1">
+              <svg class="size-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+              Shorts <span class="seg-count" data-count-type="shorts"></span>
+            </button>
+          </div>
+          <div id="v-people" class="v-people" role="group" aria-label="Creator"></div>
+          <div id="v-sort" class="seg v-sort" role="group" aria-label="Sortierung">
+            <button type="button" class="seg-item" data-sort="new" aria-pressed="true">Neueste</button>
+            <button type="button" class="seg-item" data-sort="views" aria-pressed="false">Beliebteste</button>
+          </div>
+        </div>
+
+        <p id="v-status" class="sr-only" role="status" aria-live="polite"></p>
+        <div id="v-grid" class="v-grid mt-10" role="tabpanel" aria-busy="true">
+          <div class="skeleton aspect-video"></div><div class="skeleton aspect-video"></div><div class="skeleton aspect-video"></div>
+          <div class="skeleton aspect-video"></div><div class="skeleton aspect-video"></div><div class="skeleton aspect-video"></div>
+        </div>
+        <div class="mt-12 flex justify-center">
+          <button id="v-more" class="btn btn-glass btn-lg" type="button" hidden><span>Mehr laden</span></button>
+        </div>
+        <noscript><p class="sec-sub mt-8">Ohne JavaScript kann die Videoliste leider nicht geladen werden.</p></noscript>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+<script type="module" src="../js/layout.js"></script>
+<script type="module" src="../js/videos.js"></script>
+</body>
+</html>

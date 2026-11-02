@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bilder | Medienspeicher</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../assets/img/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
+<meta name="theme-color" content="#1f6fdc">
+<link rel="preload" href="../assets/fonts/montserrat-latin-wght-italic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/source-sans-3-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/css/app.css">
+<script src="../js/boot.js"></script>
+</head>
+<body>
+<div id="site-header"></div>
+
+<main id="main" class="page">
+  <div class="container-page">
+
+    <!-- Sign in, styled like the XP welcome screen. Simple gate, not
+         security: the pictures themselves are public files in Bilder/. -->
+    <section id="pic-login" class="win pic-login" aria-labelledby="login-title">
+      <div class="win-bar">
+        <img class="win-bar-icon" src="../assets/img/floppy.webp" alt="" width="64" height="64">
+        <span class="win-bar-title">Anmeldung</span>
+      </div>
+      <div class="login-screen">
+        <div class="login-side">
+          <img class="login-logo" src="../assets/img/logo.webp" alt="Medienspeicher" width="1200" height="300">
+          <p class="login-hint">Hier liegen Logos, Banner und Bilder vom Team. Zum Ansehen bitte anmelden.</p>
+        </div>
+        <form id="login-form" class="login-user" autocomplete="off">
+          <img class="login-avatar" src="../assets/img/floppy.webp" alt="" width="512" height="512">
+          <div class="login-fields">
+            <h1 id="login-title" class="login-name">Medienspeicher</h1>
+            <label class="sr-only" for="login-pass">Passwort</label>
+            <div class="login-row">
+              <input id="login-pass" class="login-input" type="password" inputmode="numeric" autocomplete="off" placeholder="Passwort" required>
+              <button class="login-go" type="submit" aria-label="Anmelden"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            </div>
+            <p id="login-error" class="login-error" role="alert" hidden>Das Passwort stimmt nicht. Versuch es nochmal.</p>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Gallery (explorer window), shown after signing in. -->
+    <section id="pic-gallery" class="win" aria-labelledby="gal-title" hidden>
+      <div class="win-bar">
+        <img class="win-bar-icon" src="../assets/img/floppy.webp" alt="" width="64" height="64">
+        <span class="win-bar-title">Bilder</span>
+      </div>
+      <div class="win-body">
+        <div class="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <h1 id="gal-title" class="title-outline sec-title">Bilder</h1>
+            <p id="gal-sub" class="sec-sub mt-4"></p>
+          </div>
+          <button id="gal-logout" class="btn btn-glass" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Abmelden</span></button>
+        </div>
+        <div id="gal-folders" class="gal-folders" role="tablist" aria-label="Ordner"></div>
+        <div id="gal-grid" class="gal-grid" role="tabpanel"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- Lightbox -->
+<dialog id="gal-view" class="gal-view" aria-labelledby="gal-view-name">
+  <div class="gal-view-bar win-bar">
+    <span id="gal-view-name" class="win-bar-title"></span>
+    <button id="gal-close" class="gal-close" type="button" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="gal-view-stage">
+    <button id="gal-prev" class="gal-nav gal-prev" type="button" aria-label="Vorheriges Bild"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
+    <img id="gal-view-img" alt="">
+    <button id="gal-next" class="gal-nav gal-next" type="button" aria-label="Nächstes Bild"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+  </div>
+  <div class="gal-view-foot">
+    <span id="gal-view-meta"></span>
+    <a id="gal-view-open" class="btn btn-sm" href="#" target="_blank" rel="noopener"><span>Original öffnen</span></a>
+  </div>
+</dialog>
+
+<div id="site-footer"></div>
+<script type="module" src="../js/layout.js"></script>
+<script type="module" src="../js/pictures.js"></script>
+</body>
+</html>

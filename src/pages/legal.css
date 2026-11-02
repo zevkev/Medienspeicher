@@ -1,0 +1,74 @@
+/* Page styles: legal (Impressum, Datenschutz). One readable document in a
+   window, with a switcher between the two pages above it. */
+@layer components {
+  .legal-nav { display: flex; width: fit-content; max-width: 100%; margin: 0 auto 2.5rem; }
+  .legal-nav .seg-item { text-decoration: none; }
+  .legal-nav .seg-item[aria-current="page"] {
+    color: #fff;
+    background: linear-gradient(180deg, #8fd6ff 0%, #3aa6f2 49%, #1584e0 51%, #4cb2f7 100%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 3px 10px -3px #0b5fb0;
+    text-shadow: 0 1px 1px rgb(0 0 0 / 0.3);
+  }
+  .legal-sheet { width: 100%; max-width: 52rem; margin-inline: auto; }
+  .legal { font-size: 1.0625rem; line-height: 1.8; overflow-wrap: break-word; container-type: inline-size; }
+  @media (min-width: 640px) { .legal { padding: 3rem 3.5rem 3.5rem; } }
+  .legal-title { font-size: clamp(2rem, 12cqi, 3.4rem); }
+  .legal-title-long { font-size: clamp(1.4rem, 8cqi, 3rem); hyphens: manual; }
+  .legal-lead { max-width: 40rem; margin-top: 1.2rem; color: var(--ink-muted); font-size: 1.08rem; line-height: 1.75; }
+  .legal h2 { margin-top: 2.6rem; font-size: clamp(1.2rem, 3.4vw, 1.45rem); font-style: italic; font-weight: 800; line-height: 1.25; }
+  .legal :where(p, ul) { margin-top: 0.85rem; }
+  .legal ul { padding-left: 1.3rem; list-style: disc; }
+  .legal li + li { margin-top: 0.45rem; }
+  .legal li::marker { color: #1584e0; }
+  .legal :where(b, strong) { font-weight: 700; }
+  .legal a:not([class]) { color: var(--link); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+
+  /* Datenschutz: numbered sections, the number in a glossy blue orb. */
+  .legal-numbered { counter-reset: sec; }
+  .legal-numbered > h2 { display: flex; align-items: center; gap: 0.75rem; counter-increment: sec; }
+  .legal-numbered > h2::before {
+    content: counter(sec);
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    color: #fff;
+    background: linear-gradient(180deg, #8fd6ff 0%, #3aa6f2 49%, #1584e0 51%, #4cb2f7 100%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 3px 8px -3px #0b5fb0;
+    font-size: 0.95rem;
+    font-weight: 900;
+    font-style: italic;
+  }
+  .legal-tldr {
+    margin-top: 2rem;
+    padding: 1.4rem 1.4rem 1.5rem;
+    border-radius: 0.9rem;
+    background: rgb(21 132 224 / 0.08);
+    box-shadow: inset 0 0 0 1px rgb(21 132 224 / 0.25);
+  }
+  .legal-tldr h2 { margin-top: 0; }
+  .legal-tldr ul { padding-left: 0; list-style: none; }
+  .legal-tldr li { position: relative; padding-left: 1.9rem; }
+  .legal-tldr li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.3em;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 9999px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / 0.8rem no-repeat, linear-gradient(180deg, #6fd35c, #2e9322);
+  }
+}
+
+/* 404 page (styles live here to keep the page list short). */
+@layer components {
+  .nf-win { max-width: 44rem; margin: 2rem auto 0; }
+  .nf-body { display: grid; gap: 1.75rem; align-items: center; }
+  @media (min-width: 640px) { .nf-body { grid-template-columns: 7rem minmax(0, 1fr); gap: 2.25rem; } }
+  .nf-icon { width: 6rem; height: 6rem; border-radius: 1.2rem; box-shadow: 0 0 0 3px #fff, 0 14px 26px -14px rgb(8 30 60 / 0.6); }
+  @media (min-width: 640px) { .nf-icon { width: 7rem; height: 7rem; } }
+  .nf-path code { padding: 0.2rem 0.5rem; border-radius: 0.35rem; background: rgb(21 132 224 / 0.1); font-size: 0.9rem; overflow-wrap: anywhere; }
+}

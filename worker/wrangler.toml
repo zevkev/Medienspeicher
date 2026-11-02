@@ -1,0 +1,10 @@
+# Cloudflare Worker for the Mitmachen form (worker/apply-worker.js).
+# Deploy: npx wrangler deploy --config worker/wrangler.toml
+# Secrets are set in the Cloudflare dashboard (never in this repo):
+#   DISCORD_WEBHOOK (required), YT_API_KEY (optional)
+name = "medienspeicher-bewerbung"
+main = "apply-worker.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://zevkev.github.io,http://localhost:8400"

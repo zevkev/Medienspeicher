@@ -1,0 +1,48 @@
+{
+  "members": [
+    {
+      "id": "zevkev",
+      "name": "ZevKev",
+      "role": "Leitung",
+      "color": "#1e88e5",
+      "text": "Videos und Entertainment. Leiter vom Team.",
+      "avatar": "assets/img/team/zevkev.webp",
+      "site": "https://zevkev.de/",
+      "youtube": "https://www.youtube.com/@ZevKev",
+      "channelId": "UCpr-pIwKcVDAm-5ID_mdj7w"
+    },
+    {
+      "id": "jamon",
+      "name": "Jamon",
+      "role": "Co Owner",
+      "color": "#22a06b",
+      "text": "Freizeitpark-Content, Gaming und Vlogs.",
+      "avatar": "assets/img/team/jamon.webp",
+      "site": "https://jamonhd.de/",
+      "youtube": "https://www.youtube.com/@jamon_hd",
+      "channelId": "UC8i_ANEhbQ54VAI5cuJH-kw"
+    },
+    {
+      "id": "belloflo",
+      "name": "Belloflo",
+      "role": "Mitglied",
+      "color": "#e5484d",
+      "text": "Gaming und Let's Plays.",
+      "avatar": "assets/img/team/belloflo.webp",
+      "site": "https://belloflo.de/",
+      "youtube": "https://www.youtube.com/@Belloflo",
+      "channelId": "UCZuzCW_1h6FUlpTI1G-T-aQ"
+    },
+    {
+      "id": "coasty",
+      "name": "Coasty",
+      "role": "Mitglied",
+      "color": "#f59e0b",
+      "text": "Freizeitparks und Achterbahnen.",
+      "avatar": "assets/img/team/coasty.webp",
+      "site": null,
+      "youtube": "https://www.youtube.com/@coasty1211",
+      "channelId": "UCuEKAFsnnJyPdL2bXDGVCvQ"
+    }
+  ]
+}
