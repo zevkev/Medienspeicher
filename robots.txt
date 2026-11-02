@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /pictures/
+
+Sitemap: https://medien-speicher.de/sitemap.xml

@@ -1,4 +1,4 @@
-# Medienspeicher Website (zevkev.github.io/Medienspeicher)
+# Medienspeicher Website (medien-speicher.de)
 
 Read this first, then only the files a task touches.
 
@@ -7,8 +7,9 @@ Read this first, then only the files a task touches.
 Team site of the Medienspeicher: a small team of content creators who make
 videos together (ZevKev, Jamon, Belloflo, Coasty). Repo
 `github.com/zevkev/Medienspeicher`, run by Kevin Kliver (ZevKev), hosted on
-**GitHub Pages** as a project site under `zevkev.github.io/Medienspeicher/`
-(no own domain yet). Static: plain HTML + ES modules, Tailwind CSS v4
+**GitHub Pages** as a project site with the custom domain **medien-speicher.de**
+(Namecheap DNS: four GitHub A records on `@`, `www` CNAME to `zevkev.github.io`;
+`zevkev.github.io/Medienspeicher/...` redirects there). Static: plain HTML + ES modules, Tailwind CSS v4
 compiled in CI, data JSON refreshed by GitHub Actions. Built 2026-11-02 next
 to the sister sites zevkev.de, jamonhd.de, belloflo.de (their repos are in
 `I:\Claude\`; read their CLAUDE.md for shared lessons).

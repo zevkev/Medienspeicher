@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://zevkev.github.io/Medienspeicher/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
-  <url><loc>https://zevkev.github.io/Medienspeicher/videos/</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
-  <url><loc>https://zevkev.github.io/Medienspeicher/mitmachen/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://zevkev.github.io/Medienspeicher/impressum/</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
-  <url><loc>https://zevkev.github.io/Medienspeicher/datenschutz/</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://medien-speicher.de/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://medien-speicher.de/videos/</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://medien-speicher.de/mitmachen/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://medien-speicher.de/impressum/</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://medien-speicher.de/datenschutz/</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
 </urlset>
