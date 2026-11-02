@@ -1,12 +1,17 @@
 {
-  "since": 1793657462,
+  "since": 1793658758,
   "done": [
-    "7LpK270I5Kks"
+    "7LpK270I5Kks",
+    "jDz2IxZorZLF"
   ],
   "recent": [
     {
       "key": "https://www.youtube.com/@coasty1211|test@example.com",
       "at": 1793658217465
+    },
+    {
+      "key": "https://www.youtube.com/@zevkev|kontakt.zevkev@gmail.com",
+      "at": 1793658761747
     }
   ]
 }
