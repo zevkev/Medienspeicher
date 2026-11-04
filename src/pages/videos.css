@@ -10,9 +10,8 @@
     .v-type { width: 100%; }
     .v-type .seg-item { flex: 1; min-width: 0; padding-inline: 0.5rem; font-size: 0.92rem; }
     .v-sort { margin-left: 0; }
-    /* Creators scroll sideways on phones instead of wrapping into rows. */
-    .v-people { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -1.5rem; padding: 0.25rem 1.5rem 0.5rem; }
-    .v-people::-webkit-scrollbar { display: none; }
+    /* All creators stay visible on phones, in as many rows as they need. */
+    .v-people { gap: 0.45rem; }
   }
   .person {
     display: inline-flex;
@@ -46,6 +45,11 @@
     font-style: normal;
   }
   .person[aria-pressed="true"] { box-shadow: inset 0 1px 0 var(--glass-edge), 0 0 0 2.5px var(--role, #1584e0), 0 6px 16px -8px var(--role, #1584e0); }
+  @media (max-width: 639.98px) {
+    .person { height: 2.5rem; padding-right: 0.85rem; font-size: 0.82rem; }
+    .person .orb { width: 1.9rem; height: 1.9rem; }
+    .person-all { width: 1.9rem; height: 1.9rem; }
+  }
 
   .v-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
   @media (min-width: 640px) { .v-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.75rem; } }

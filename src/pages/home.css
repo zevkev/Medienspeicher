@@ -8,6 +8,9 @@
   @media (prefers-reduced-motion: no-preference) {
     .hero-win { animation: win-open 0.7s var(--ease-soft) 0.1s backwards; }
   }
+  @media (max-width: 479.98px) {
+    .hero-win .win-bar-title { font-size: clamp(0.6rem, 3vw, 0.78rem); letter-spacing: 0.02em; white-space: normal; overflow: visible; line-height: 1.25; }
+  }
   .hero-body { text-align: center; padding: 2rem 1.25rem 2.25rem; }
   @media (min-width: 640px) { .hero-body { padding: 3rem 3.5rem 3.25rem; } }
   .hero-logo { display: block; width: 100%; max-width: 36rem; height: auto; margin-inline: auto; filter: drop-shadow(0 8px 14px rgb(8 52 110 / 0.25)); }
@@ -36,24 +39,19 @@
     background: var(--glass-strong);
     box-shadow: inset 0 1px 0 var(--glass-edge), 0 0 0 1px var(--line);
   }
-  .fact b { font-family: var(--font-display); font-style: italic; font-weight: 900; font-size: clamp(1.6rem, 5vw, 2.3rem); line-height: 1; color: #0b5ad6; }
+  .fact { container-type: inline-size; min-width: 0; }
+  .fact b { font-family: var(--font-display); font-style: italic; font-weight: 900; font-size: clamp(1.05rem, 15.5cqi, 2.2rem); line-height: 1; color: #0b5ad6; white-space: nowrap; }
   :where([data-theme="dark"]) .fact b { color: #8cc4ff; }
   .fact span { color: var(--ink-muted); font-size: 0.9rem; font-weight: 600; line-height: 1.25; }
+  /* Phones: one row per number, so long numbers have the whole width. */
+  @media (max-width: 519.98px) {
+    .hero-facts { grid-template-columns: minmax(0, 1fr); }
+    .fact { container-type: normal; flex-direction: row; justify-content: space-between; gap: 1rem; padding: 0.7rem 1rem; text-align: right; }
+    .fact b { font-size: 1.5rem; }
+  }
 
   /* Team */
   .team-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
-  @media (min-width: 370px) and (max-width: 639.98px) {
-    .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; }
-    .member-band { height: 3.6rem; }
-    .member-orb { width: 4.6rem; height: 4.6rem; margin-top: -2.4rem; }
-    .member-body { gap: 0.6rem; padding: 0.75rem 0.7rem 1rem; }
-    .member-name { font-size: 1.3rem; }
-    .member-text { font-size: 0.88rem; line-height: 1.45; }
-    .member-stats { gap: 0.7rem; font-size: 0.75rem; }
-    .member-stats b { font-size: 1rem; }
-    .member-links { flex-direction: column; width: 100%; gap: 0.45rem; }
-    .member-links .btn { width: 100%; padding-inline: 0.5rem; }
-  }
   @media (min-width: 640px) { .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (min-width: 1200px) { .team-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   .member {
@@ -89,6 +87,21 @@
   .member-stats { display: flex; justify-content: center; gap: 1.25rem; margin-top: 0.25rem; font-size: 0.9rem; color: var(--ink-muted); }
   .member-stats b { display: block; font-family: var(--font-display); font-style: italic; font-weight: 900; font-size: 1.25rem; color: var(--ink); }
   .member-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; margin-top: auto; padding-top: 0.5rem; }
+  /* Phones: two compact cards side by side. The name scales with the card
+     width, so "Belloflo" always fits. */
+  .member { container-type: inline-size; }
+  @media (min-width: 370px) and (max-width: 639.98px) {
+    .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; }
+    .member-band { height: 3.6rem; }
+    .member-orb { width: 4.6rem; height: 4.6rem; margin-top: -2.4rem; }
+    .member-body { gap: 0.6rem; padding: 0.75rem 0.7rem 1rem; }
+    .member-name { font-size: clamp(1rem, 12cqi, 1.35rem); }
+    .member-text { font-size: 0.88rem; line-height: 1.45; }
+    .member-stats { gap: 0.7rem; font-size: 0.75rem; }
+    .member-stats b { font-size: 1rem; }
+    .member-links { flex-direction: column; width: 100%; gap: 0.45rem; }
+    .member-links .btn { width: 100%; padding-inline: 0.5rem; }
+  }
 
   /* Statistics: Vista gadget tiles + XP progress bars. */
   .stats-totals { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
