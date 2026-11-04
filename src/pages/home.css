@@ -103,6 +103,9 @@
     .member-links .btn { width: 100%; padding-inline: 0.5rem; }
   }
 
+  /* Tiny screens: the Discord title needs the full width, the icon goes above it. */
+  @media (max-width: 339.98px) { .dc-main > div:first-child { flex-direction: column; align-items: flex-start; gap: 0.75rem; } }
+
   /* Statistics: Vista gadget tiles + XP progress bars. */
   .stats-totals { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
   @media (min-width: 640px) { .stats-totals { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

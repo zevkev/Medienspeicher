@@ -250,6 +250,7 @@
 
   /* Section heading inside a window. */
   .sec-title { font-size: clamp(1.55rem, 7vw, 3rem); overflow-wrap: break-word; }
+  @media (min-width: 340px) { .sec-title { -webkit-hyphens: none; hyphens: none; } }
   .sec-sub { color: var(--ink-muted); font-size: 1.1rem; line-height: 1.65; }
 
   /* ---------- Aero buttons ---------- */
