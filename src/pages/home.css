@@ -109,6 +109,7 @@
   .gadget {
     position: relative;
     overflow: hidden;
+    container-type: inline-size;
     padding: 1.4rem 1.5rem 1.5rem;
     border-radius: 1rem;
     color: #fff;
@@ -129,7 +130,7 @@
     border-radius: 9999px;
     background: radial-gradient(circle, rgb(255 255 255 / 0.22), transparent 70%);
   }
-  .gadget-num { display: block; font-family: var(--font-display); font-style: italic; font-weight: 900; font-size: clamp(2.2rem, 6vw, 3rem); line-height: 1; text-shadow: 0 2px 6px rgb(0 0 0 / 0.3); }
+  .gadget-num { display: block; font-family: var(--font-display); font-style: italic; font-weight: 900; font-size: clamp(1.5rem, 19cqw, 3rem); line-height: 1; text-shadow: 0 2px 6px rgb(0 0 0 / 0.3); }
   .gadget-label { display: block; margin-top: 0.6rem; font-weight: 700; font-size: 1rem; opacity: 0.95; }
   @media (max-width: 639.98px) {
     .stats-totals { gap: 0.6rem; }

@@ -93,7 +93,8 @@ function renderStats(team, stats, videos) {
   $("stats-bars").innerHTML = members
     .map((m) => {
       const value = stats.channels[m.id][key] || 0;
-      const pct = Math.max(3, Math.round((value / max) * 100));
+      // Cube root: the leader stays full and the order holds, but nobody looks empty.
+      const pct = Math.max(3, Math.round(Math.cbrt(value / max) * 100));
       return `
       <div class="bar-row" style="--role:${escapeHTML(m.color)}">
         <span class="orb" style="--orb:${escapeHTML(m.color)}"><img src="${siteUrl(m.avatar)}" alt="" width="384" height="384" loading="lazy"></span>
