@@ -1,9 +1,9 @@
 {
-  "updatedAt": "2026-11-04T14:32:40.033Z",
+  "updatedAt": "2026-11-04T20:53:47.630Z",
   "source": "feed",
   "channels": {
     "zevkev": {
-      "recentViews": 116459,
+      "recentViews": 116462,
       "recentVideos": 15,
       "uploads30d": 0
     },
@@ -18,9 +18,9 @@
       "uploads30d": 0
     },
     "coasty": {
-      "recentViews": 12091,
+      "recentViews": 12108,
       "recentVideos": 15,
-      "uploads30d": 7
+      "uploads30d": 6
     }
   }
 }
