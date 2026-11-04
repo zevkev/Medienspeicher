@@ -42,7 +42,7 @@ Keep `datenschutz/` in sync with any change.
 - Mobile navigation lives in the taskbar (Home, Videos, Mitmachen, Discord,
   then Impressum, Datenschutz); the header shows only logo and theme on phones. Videos open on YouTube in the same tab.
 - Team roles and colours: ZevKev Leitung #1e88e5, Jamon Co Owner #22a06b,
-  Belloflo Mitglied #e5484d, Coasty Mitglied #f59e0b (Coasty has no website,
+  Belloflo Mitglied #e5484d, Coasty Mitglied #a760dd (Coasty has no website,
   only YouTube @coasty1211, and is not mentioned on the other sites).
 
 ## Paths: everything is relative
