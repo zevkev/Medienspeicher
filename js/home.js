@@ -121,6 +121,31 @@ function renderNew(team, videos) {
     return;
   }
   grid.innerHTML = list.map((v) => videoCardHTML(v, team)).join("");
+  wireNewNav(grid, list.length);
+}
+
+// Phones: the newest videos are a swipe row. Arrows page through it and
+// "2 / 6" shows where you are (hidden on wider screens via CSS).
+function wireNewNav(grid, count) {
+  const prev = $("new-prev");
+  const next = $("new-next");
+  const pos = $("new-pos");
+  const step = () => {
+    const card = grid.firstElementChild;
+    return card ? card.getBoundingClientRect().width + (parseFloat(getComputedStyle(grid).columnGap) || 0) : grid.clientWidth;
+  };
+  const sync = () => {
+    const atEnd = grid.scrollLeft + grid.clientWidth >= grid.scrollWidth - 4;
+    const index = atEnd ? count - 1 : Math.min(count - 1, Math.round(grid.scrollLeft / step()));
+    pos.textContent = `${index + 1} / ${count}`;
+    prev.disabled = grid.scrollLeft <= 4;
+    next.disabled = atEnd;
+  };
+  prev.addEventListener("click", () => grid.scrollBy({ left: -step(), behavior: "smooth" }));
+  next.addEventListener("click", () => grid.scrollBy({ left: step(), behavior: "smooth" }));
+  grid.addEventListener("scroll", () => requestAnimationFrame(sync), { passive: true });
+  addEventListener("resize", sync);
+  sync();
 }
 
 function renderDiscord(discord) {

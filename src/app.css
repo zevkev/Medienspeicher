@@ -678,8 +678,9 @@
   }
   @media (min-width: 640px) { .tray { padding-right: 1.5rem; } }
   :where([data-theme="dark"]) .tray { background: linear-gradient(180deg, #0f6ab0 0%, #0b5a99 50%, #094c84 100%); }
-  .tray a { color: #fff; text-decoration: none; font-size: 0.85rem; font-weight: 600; opacity: 0.92; }
-  .tray a:hover { opacity: 1; text-decoration: underline; }
+  /* The legal links must be easy to find on every page (DDG, DSGVO). */
+  .tray a { color: #fff; font-size: 0.95rem; font-weight: 700; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-shadow: 0 1px 1px rgb(0 0 0 / 0.35); }
+  .tray a:hover { text-decoration-thickness: 2px; }
   .tray-clock { font-size: 0.9rem; font-weight: 700; font-variant-numeric: tabular-nums; }
   .tray-icons { display: flex; gap: 0.55rem; }
   .tray-icons a { display: grid; place-items: center; opacity: 0.95; }

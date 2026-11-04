@@ -185,8 +185,14 @@
           </div>
           <a class="btn btn-glass" href="videos/"><span>Alle Videos</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
-        <div id="new-grid" class="new-grid mt-10">
+        <div id="new-grid" class="new-grid mt-10" tabindex="0" aria-label="Neue Videos, zum Blättern wischen">
           <div class="skeleton aspect-video"></div><div class="skeleton aspect-video"></div><div class="skeleton aspect-video"></div>
+        </div>
+        <!-- Phones: the videos are a swipe row; these buttons page through it. -->
+        <div class="new-nav" aria-label="Neue Videos blättern">
+          <button id="new-prev" class="new-arrow" type="button" aria-label="Vorheriges Video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
+          <span id="new-pos" class="new-pos" aria-live="polite"></span>
+          <button id="new-next" class="new-arrow" type="button" aria-label="Nächstes Video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
         </div>
       </div>
     </section>
