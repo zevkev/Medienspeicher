@@ -74,7 +74,7 @@ through the redirect, but better update them).
 | `scripts/fetch-feeds.mjs` | RSS feeds of every team channel into `videos.json` (Shorts check with consent cookie + oEmbed fallback) and `stats.json` (YouTube Data API if secret `YOUTUBE_API_KEY` exists, else feed numbers). |
 | `scripts/fetch-discord.mjs` | Discord invite stats and server icon. |
 | `scripts/build-pictures.mjs` | Previews and list for `/pictures/` (uses sharp). |
-| `.github/workflows/` | `deploy.yml` (push/dispatch: CSS, previews, cache-bust), `data-refresh.yml` (30 min, dispatches the deploy on change). |
+| `.github/workflows/` | `deploy.yml` (push/dispatch: CSS, previews, cache-bust), `data-refresh.yml` (30 min plus a fixed check every 6 hours, dispatches the deploy on change). |
 | `tools/serve.mjs` | Local preview like GitHub Pages at the root: `node tools/serve.mjs 8400`, then http://localhost:8400/ |
 | `_dev/` | Gitignored scratch (OG image source `og.html`, old gallery page). |
 

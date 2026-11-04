@@ -5,6 +5,9 @@ on:
     # GitHub runs short cron schedules on small repos only every few hours
     # in practice; 30 minutes is the request, not a promise.
     - cron: "*/30 * * * *"
+    # Off the busy full and half hours, so the daily check still gets through
+    # when the schedule above is dropped.
+    - cron: "17 */6 * * *"
   workflow_dispatch:
 
 permissions:

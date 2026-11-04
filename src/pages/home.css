@@ -140,8 +140,10 @@
   }
 
   .stats-bars { display: grid; gap: 1.1rem; }
-  .bar-row { display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); align-items: center; gap: 0.9rem; }
-  .bar-row .orb { width: 2.75rem; height: 2.75rem; padding: 2px; }
+  .bar-row { display: grid; grid-template-columns: 1.5rem 2.75rem minmax(0, 1fr); align-items: center; gap: 0.9rem; }
+  @media (max-width: 639.98px) { .bar-row { grid-template-columns: 1.1rem 2.5rem minmax(0, 1fr); gap: 0.55rem; } }
+  .bar-rank { font-family: var(--font-display); font-style: italic; font-weight: 900; font-size: 1.6rem; line-height: 1; text-align: center; }
+  .bar-row .orb { width: 100%; height: auto; aspect-ratio: 1; padding: 2px; }
   .bar-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 0.4rem; }
   .bar-head b { font-family: var(--font-display); font-style: italic; font-weight: 800; }
   .bar-head span { color: var(--ink-muted); font-weight: 700; font-variant-numeric: tabular-nums; }
