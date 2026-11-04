@@ -90,21 +90,20 @@ function renderStats(team, stats, videos) {
 
   const key = api ? "views" : "recentViews";
   const viewsOf = (m) => stats.channels[m.id][key] || 0;
-  // Leaderboard: the order comes from the data, so every refresh can reshuffle it.
+  // Most views on top: the order comes from the data, so every refresh can reshuffle it.
   const ranked = [...members].sort((a, b) => viewsOf(b) - viewsOf(a));
   const max = Math.max(1, viewsOf(ranked[0]));
   $("stats-bars").innerHTML = ranked
-    .map((m, i) => {
+    .map((m) => {
       const value = viewsOf(m);
       // Cube root: the leader stays full and the order holds, but nobody looks empty.
       const pct = Math.max(3, Math.round(Math.cbrt(value / max) * 100));
       return `
       <div class="bar-row" style="--role:${escapeHTML(m.color)}">
-        <span class="bar-rank">${i + 1}</span>
         <span class="orb" style="--orb:${escapeHTML(m.color)}"><img src="${siteUrl(m.avatar)}" alt="" width="384" height="384" loading="lazy"></span>
         <div>
           <div class="bar-head"><b>${escapeHTML(m.name)}</b><span>${numberDE.format(value)} Aufrufe</span></div>
-          <div class="xp-bar" role="img" aria-label="Platz ${i + 1}, ${escapeHTML(m.name)}: ${numberDE.format(value)} Aufrufe"><div class="xp-fill" data-w="${pct}%"></div></div>
+          <div class="xp-bar" role="img" aria-label="${escapeHTML(m.name)}: ${numberDE.format(value)} Aufrufe"><div class="xp-fill" data-w="${pct}%"></div></div>
         </div>
       </div>`;
     })
