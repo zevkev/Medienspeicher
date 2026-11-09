@@ -1,12 +1,20 @@
 {
-  "updatedAt": "2026-11-09T06:28:27.405Z",
+  "updatedAt": "2026-11-09T11:11:06.791Z",
   "videos": [
+    {
+      "id": "wFia_uOkMWw",
+      "member": "coasty",
+      "title": "I believe i can F.L.Y. #shorts #phantasialand #rollercoaster #themepark #immersive #vekoma",
+      "publishedAt": "2026-11-09T11:00:37+00:00",
+      "views": 12,
+      "isShort": true
+    },
     {
       "id": "jjNFqxRRIEU",
       "member": "coasty",
       "title": "Einfach UNGEZÄHMT! #shorts #walibiholland #rmc  #rollercoaster #freizeitpark #themepark #achterbahn",
       "publishedAt": "2026-11-02T11:00:02+00:00",
-      "views": 971,
+      "views": 972,
       "isShort": true
     },
     {
@@ -14,7 +22,7 @@
       "member": "coasty",
       "title": "Mein erstes Karls Erlebnisdorf | Karls Erlebnisdorf Oberhausen 🍓 2026",
       "publishedAt": "2026-10-26T17:00:08+00:00",
-      "views": 322,
+      "views": 324,
       "isShort": false
     },
     {
@@ -62,7 +70,7 @@
       "member": "coasty",
       "title": "Aber jetzt mit KARACHO!🎢| CoasterControls 🎮",
       "publishedAt": "2026-10-05T16:00:06+00:00",
-      "views": 114,
+      "views": 118,
       "isShort": false
     },
     {
@@ -110,7 +118,7 @@
       "member": "coasty",
       "title": "So LEER hab ich den Park noch nie erlebt! | Phantasialand 2026",
       "publishedAt": "2026-09-28T16:00:20+00:00",
-      "views": 1788,
+      "views": 1790,
       "isShort": false
     },
     {
@@ -142,7 +150,7 @@
       "member": "coasty",
       "title": "So steuerst du den CANCAN-COASTER!🎢| CoasterControls 🎮",
       "publishedAt": "2026-09-21T16:00:15+00:00",
-      "views": 198,
+      "views": 199,
       "isShort": false
     },
     {
@@ -166,16 +174,8 @@
       "member": "coasty",
       "title": "Dieses Spiel MUSST du KENNEN! 🎢| CoasterControls 🎮",
       "publishedAt": "2026-09-07T16:00:20+00:00",
-      "views": 279,
+      "views": 280,
       "isShort": false
-    },
-    {
-      "id": "KrhWGvvwmHU",
-      "member": "coasty",
-      "title": "Wer bremst, verliert!  #freizeitpark #rollercoaster #shorts #kirmes #achterbahn",
-      "publishedAt": "2026-09-07T10:00:08+00:00",
-      "views": 1322,
-      "isShort": true
     },
     {
       "id": "DJeZ2Eppg3A",
@@ -230,7 +230,7 @@
       "member": "zevkev",
       "title": "Movie Parks neue Attraktion ist eine Enttäuschung...",
       "publishedAt": "2026-05-24T11:00:18+00:00",
-      "views": 2868,
+      "views": 2869,
       "isShort": false
     },
     {
@@ -270,7 +270,7 @@
       "member": "zevkev",
       "title": "Die verstörende Wahrheit hinter der Van Helsing's Factory",
       "publishedAt": "2026-04-04T10:00:22+00:00",
-      "views": 2249,
+      "views": 2250,
       "isShort": true
     },
     {
@@ -438,7 +438,7 @@
       "member": "jamon",
       "title": "Ich FIXE Planet Coaster 2 BLUEPRINTS",
       "publishedAt": "2025-11-08T12:00:34+00:00",
-      "views": 283,
+      "views": 284,
       "isShort": false
     },
     {
@@ -446,7 +446,7 @@
       "member": "belloflo",
       "title": "Das traurige Ende von @THEMEPARKCRAFT Themeparkcraft",
       "publishedAt": "2025-10-29T13:00:00+00:00",
-      "views": 267,
+      "views": 268,
       "isShort": false
     },
     {
