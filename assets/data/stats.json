@@ -1,26 +1,26 @@
 {
-  "updatedAt": "2026-11-15T20:55:38.363Z",
+  "updatedAt": "2026-11-16T18:13:00.208Z",
   "source": "feed",
   "channels": {
     "zevkev": {
-      "recentViews": 116576,
+      "recentViews": 116579,
       "recentVideos": 15,
       "uploads30d": 0
     },
     "jamon": {
-      "recentViews": 15195,
+      "recentViews": 15203,
       "recentVideos": 15,
-      "uploads30d": 1
+      "uploads30d": 0
     },
     "belloflo": {
-      "recentViews": 10626,
+      "recentViews": 10635,
       "recentVideos": 15,
       "uploads30d": 0
     },
     "coasty": {
-      "recentViews": 11610,
+      "recentViews": 10536,
       "recentVideos": 15,
-      "uploads30d": 6
+      "uploads30d": 8
     }
   }
 }
