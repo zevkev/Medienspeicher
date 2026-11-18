@@ -1,14 +1,14 @@
 {
-  "updatedAt": "2026-11-18T10:34:24.826Z",
+  "updatedAt": "2026-11-18T19:18:26.259Z",
   "source": "feed",
   "channels": {
     "zevkev": {
-      "recentViews": 116593,
+      "recentViews": 116596,
       "recentVideos": 15,
       "uploads30d": 0
     },
     "jamon": {
-      "recentViews": 15211,
+      "recentViews": 15212,
       "recentVideos": 15,
       "uploads30d": 0
     },
@@ -18,9 +18,9 @@
       "uploads30d": 0
     },
     "coasty": {
-      "recentViews": 11123,
+      "recentViews": 11136,
       "recentVideos": 15,
-      "uploads30d": 7
+      "uploads30d": 6
     }
   }
 }
