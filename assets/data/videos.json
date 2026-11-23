@@ -1,12 +1,20 @@
 {
-  "updatedAt": "2026-11-23T12:17:04.728Z",
+  "updatedAt": "2026-11-23T23:53:31.152Z",
   "videos": [
+    {
+      "id": "VZuSK1nJNjw",
+      "member": "coasty",
+      "title": "Die BESTEN Achterbahnen für alle in EUROPA | Top 5 Familycoaster Ranking",
+      "publishedAt": "2026-11-23T17:00:02+00:00",
+      "views": 12,
+      "isShort": false
+    },
     {
       "id": "q09jKRYsXmc",
       "member": "coasty",
       "title": "Die Maschinerie von Klugheim #shorts #phantasialand #taron #themepark #rollercoaster #intamin",
       "publishedAt": "2026-11-23T11:00:12+00:00",
-      "views": 25,
+      "views": 156,
       "isShort": true
     },
     {
@@ -14,7 +22,7 @@
       "member": "coasty",
       "title": "Kondaa First Ride - Selfie Onride  | Walibi Belgium 2025",
       "publishedAt": "2026-11-16T17:00:27+00:00",
-      "views": 57,
+      "views": 58,
       "isShort": false
     },
     {
@@ -22,7 +30,7 @@
       "member": "coasty",
       "title": "Achterbahn thematisiert nach einer Baustelle #walibiholland #mackrides #rollercoaster #walibi",
       "publishedAt": "2026-11-16T11:00:04+00:00",
-      "views": 985,
+      "views": 986,
       "isShort": true
     },
     {
@@ -46,7 +54,7 @@
       "member": "coasty",
       "title": "Mein erstes Karls Erlebnisdorf | Karls Erlebnisdorf Oberhausen 🍓 2026",
       "publishedAt": "2026-10-26T17:00:08+00:00",
-      "views": 360,
+      "views": 362,
       "isShort": false
     },
     {
@@ -62,7 +70,7 @@
       "member": "coasty",
       "title": "Stress & Störungen bei OHM-THE SIM🎢| CoasterControls 🎮",
       "publishedAt": "2026-10-19T16:00:03+00:00",
-      "views": 100,
+      "views": 102,
       "isShort": false
     },
     {
@@ -142,7 +150,7 @@
       "member": "coasty",
       "title": "So LEER hab ich den Park noch nie erlebt! | Phantasialand 2026",
       "publishedAt": "2026-09-28T16:00:20+00:00",
-      "views": 1863,
+      "views": 1864,
       "isShort": false
     },
     {
@@ -158,7 +166,7 @@
       "member": "zevkev",
       "title": "Das ist der SCHÖNSTE Freizeitpark Hollands! 🇳🇱 (Efteling Vlog)",
       "publishedAt": "2026-09-27T10:45:56+00:00",
-      "views": 658,
+      "views": 659,
       "isShort": false
     },
     {
@@ -167,14 +175,6 @@
       "title": "Ich teste das Weekly-Game Mechabellum",
       "publishedAt": "2026-09-27T10:00:08+00:00",
       "views": 201,
-      "isShort": false
-    },
-    {
-      "id": "yIojGKjVOtQ",
-      "member": "coasty",
-      "title": "So steuerst du den CANCAN-COASTER!🎢| CoasterControls 🎮",
-      "publishedAt": "2026-09-21T16:00:15+00:00",
-      "views": 207,
       "isShort": false
     },
     {
@@ -214,7 +214,7 @@
       "member": "zevkev",
       "title": "Wie gut ist das KARLS Erlebnisdorf in Oberhausen",
       "publishedAt": "2026-07-23T17:44:42+00:00",
-      "views": 2984,
+      "views": 2988,
       "isShort": false
     },
     {
@@ -230,7 +230,7 @@
       "member": "zevkev",
       "title": "Movie Parks neue Attraktion ist eine Enttäuschung...",
       "publishedAt": "2026-05-24T11:00:18+00:00",
-      "views": 2897,
+      "views": 2899,
       "isShort": false
     },
     {
@@ -342,7 +342,7 @@
       "member": "jamon",
       "title": "Der MOVIE PARK startet in die SEASON 2026 🎢",
       "publishedAt": "2026-03-28T13:00:08+00:00",
-      "views": 533,
+      "views": 534,
       "isShort": false
     },
     {
